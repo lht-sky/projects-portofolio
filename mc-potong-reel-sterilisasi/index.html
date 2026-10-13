@@ -1,0 +1,608 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mesin Potong Reel Sterilisasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lembar gambar teknik — header title strip, sheet layout 2D, viewer 3D + legenda, detail, spesifikasi, title block */
+:root{
+  --paper:#f3f4ef; --sheet:#fbfbf8; --ink:#1c2745; --line:#34446e; --muted:#69728a;
+  --grid:rgba(52,68,110,.07); --mag:#c0177a; --blue:#2b3ea6; --blue-f:rgba(43,62,166,.14);
+  --web:#8ccfdc; --web-f:rgba(110,190,210,.35); --steel:#c9ced8; --warn:#d98a12;
+  --f-disp:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0f1420; --sheet:#151c2b; --ink:#e2e7f3; --line:#a3b3dc; --muted:#8b94aa;
+  --grid:rgba(163,179,220,.07); --mag:#ff63b1; --blue:#8796ff; --blue-f:rgba(135,150,255,.16);
+  --web:#3d8a99; --web-f:rgba(80,170,190,.28); --steel:#5a6377; --warn:#f0a63a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1420; --sheet:#151c2b; --ink:#e2e7f3; --line:#a3b3dc; --muted:#8b94aa;
+  --grid:rgba(163,179,220,.07); --mag:#ff63b1; --blue:#8796ff; --blue-f:rgba(135,150,255,.16);
+  --web:#3d8a99; --web-f:rgba(80,170,190,.28); --steel:#5a6377; --warn:#f0a63a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:flex;flex-direction:column;gap:28px}
+header{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:14px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mag)}
+h1{font-family:var(--f-disp);font-weight:700;font-size:clamp(30px,5vw,48px);line-height:1;margin:6px 0 8px;text-wrap:balance;letter-spacing:.01em}
+.lede{margin:0;max-width:68ch;color:var(--muted)}
+.rev{font-family:var(--f-mono);font-size:12px;text-align:right;color:var(--muted);line-height:1.7}
+.rev b{color:var(--ink);font-weight:500}
+h2{font-family:var(--f-disp);font-weight:600;font-size:24px;letter-spacing:.04em;text-transform:uppercase;margin:0;display:flex;gap:12px;align-items:baseline;text-wrap:balance}
+h2 span{font-family:var(--f-mono);font-size:12px;color:var(--mag);letter-spacing:.08em}
+section{display:flex;flex-direction:column;gap:12px}
+.note{font-size:13.5px;color:var(--muted);margin:0;max-width:75ch}
+.sheet{background:var(--sheet);border:1.5px solid var(--line);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;position:relative}
+.scroll{overflow-x:auto}
+.view-label{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;color:var(--muted);padding:10px 14px 0;text-transform:uppercase}
+svg.dwg{display:block;width:100%;min-width:760px;height:auto}
+svg text{font-family:var(--f-mono);fill:var(--ink)}
+.o{fill:none;stroke:var(--line);stroke-width:3}
+.o2{fill:none;stroke:var(--line);stroke-width:2}
+.thin{fill:none;stroke:var(--muted);stroke-width:1.5}
+.dash{fill:none;stroke:var(--muted);stroke-width:2.5;stroke-dasharray:14 8}
+.cl{fill:none;stroke:var(--mag);stroke-width:1.5;stroke-dasharray:30 6 4 6;opacity:.7}
+.p{fill:var(--blue-f);stroke:var(--blue);stroke-width:2.5}
+.pf{fill:var(--blue);stroke:var(--blue);stroke-width:2}
+.st{fill:var(--steel);stroke:var(--line);stroke-width:2}
+.webf{fill:var(--web-f);stroke:var(--web);stroke-width:2}
+.webl{fill:none;stroke:var(--web);stroke-width:6;stroke-linejoin:round}
+.reel{fill:var(--web);stroke:var(--line);stroke-width:2.5;fill-opacity:.55}
+.knife{fill:var(--mag);stroke:var(--mag)}
+.dim{stroke:var(--mag);stroke-width:1.6;fill:none}
+.dimt{fill:var(--mag);font-size:24px;font-weight:500}
+.lbl{font-size:22px;fill:var(--muted)}
+.bl circle{fill:var(--sheet);stroke:var(--mag);stroke-width:2}
+.bl line{stroke:var(--mag);stroke-width:1.5}
+.bl text{fill:var(--mag);font-size:22px;font-weight:500;text-anchor:middle;dominant-baseline:central}
+.ground{stroke:var(--line);stroke-width:3}
+
+/* 3D */
+.viewer{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0;border:1.5px solid var(--line);background:var(--sheet)}
+#stage{position:relative;min-height:460px;aspect-ratio:16/10;max-width:100%}
+#stage canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
+#stage .hint{position:absolute;left:12px;bottom:10px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);pointer-events:none}
+#stage .fail{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted)}
+.tools{position:absolute;top:10px;left:10px;display:flex;gap:6px;flex-wrap:wrap}
+.btn{font-family:var(--f-mono);font-size:12px;padding:6px 10px;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer;letter-spacing:.03em}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.btn:focus-visible,.legend li:focus-visible,.seg button:focus-visible{outline:2px solid var(--mag);outline-offset:2px}
+.legend{border-left:1.5px solid var(--line);padding:14px 0;display:flex;flex-direction:column;min-width:0}
+.legend h3{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 16px 8px;font-weight:500}
+.legend ol{list-style:none;margin:0;padding:0;overflow:auto;max-height:520px}
+.legend li{display:grid;grid-template-columns:30px 1fr;gap:8px;padding:6px 16px;cursor:pointer;font-size:13.5px;line-height:1.35}
+.legend li:hover,.legend li.on{background:var(--blue-f)}
+.legend .n{font-family:var(--f-mono);color:var(--mag);font-weight:500;border:1.5px solid var(--mag);border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:12px}
+.legend small{display:block;color:var(--muted);font-size:12px}
+
+/* details */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.card{background:var(--sheet);border:1.5px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.card .head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--grid);flex-wrap:wrap}
+.card .head b{font-family:var(--f-disp);font-size:19px;letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.card svg{display:block;width:100%;height:auto}
+.card .body{padding:12px 16px 16px;font-size:13.5px}
+.seg{display:flex;border:1.5px solid var(--line)}
+.seg button{font-family:var(--f-mono);font-size:12px;border:0;background:transparent;color:var(--ink);padding:5px 9px;cursor:pointer;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--mag);color:var(--sheet)}
+ol.seq{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+ol.seq li::marker{font-family:var(--f-mono);color:var(--mag)}
+
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--grid);vertical-align:top}
+th{font-weight:500;color:var(--muted);width:34%;font-size:13px}
+td{font-variant-numeric:tabular-nums}
+.tag{font-family:var(--f-mono);font-size:11px;color:var(--warn);border:1px solid var(--warn);padding:0 5px;margin-left:6px;white-space:nowrap}
+
+.tb{display:grid;grid-template-columns:1.4fr 2fr repeat(4,auto);border:2px solid var(--ink);background:var(--sheet);font-family:var(--f-mono);font-size:12px}
+.tb>div{padding:8px 12px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:2px;min-width:0}
+.tb>div:first-child{border-left:0}
+.tb span{color:var(--muted);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
+.tb b{font-weight:500;color:var(--ink)}
+.tb .co b{font-family:"Times New Roman",serif;font-size:16px;font-weight:700}
+
+@media (max-width:860px){
+  .viewer{grid-template-columns:1fr}
+  .legend{border-left:0;border-top:1.5px solid var(--line)}
+  .legend ol{max-height:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .two{grid-template-columns:1fr}
+  header{grid-template-columns:1fr}.rev{text-align:left}
+  .tb{grid-template-columns:1fr 1fr}
+  .tb>div{border-left:0;border-top:1px solid var(--line)}
+  #stage{min-height:340px;aspect-ratio:4/3}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow">Gambar konsep · Rev K0</div>
+    <h1>Auto Cut &amp; Notch — Sterilization Reel 200</h1>
+    <p class="lede">Mesin potong otomatis untuk flat reel sterilisasi lebar 200 mm. Panjang potong dikunci ke tanda cetak (pitch 80 / 100 / 120 / 150 / 200 mm), notch V dibuat dalam stroke yang sama dengan pemotongan, konstruksi untuk cleanroom.</p>
+  </div>
+  <div class="rev">Unit <b>mm</b> · Skala <b>NTS</b><br>Tanggal <b>13-10-2026</b><br>Status <b>Konsep untuk diskusi</b></div>
+</header>
+
+<!-- ============ LAYOUT 2D ============ -->
+<section>
+  <h2><span>01</span>Layout umum</h2>
+  <p class="note">Web mengalir dari kiri ke kanan. Sisi operator dan tepi referensi (sisi notch) berada di depan mesin, yaitu sisi bawah pada tampak atas.</p>
+  <div class="sheet">
+    <div class="view-label">Tampak atas</div>
+    <div class="scroll">
+    <svg class="dwg" viewBox="0 0 1900 1060" role="img" aria-label="Tampak atas mesin">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="var(--mag)"/></marker>
+        <marker id="fa" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--web)"/></marker>
+      </defs>
+      <!-- frame -->
+      <rect class="o" x="100" y="75" width="1700" height="750"/>
+      <rect class="dash" x="650" y="95" width="1140" height="710"/>
+      <line class="cl" x1="60" y1="450" x2="1840" y2="450"/>
+      <!-- web -->
+      <rect class="webf" x="300" y="350" width="850" height="200"/>
+      <line x1="320" y1="450" x2="420" y2="450" stroke="var(--web)" stroke-width="4" marker-end="url(#fa)"/>
+      <!-- unwinder -->
+      <rect class="st" x="255" y="175" width="90" height="80"/>
+      <rect class="pf" x="240" y="255" width="120" height="20"/>
+      <line x1="300" y1="275" x2="300" y2="600" stroke="var(--line)" stroke-width="5"/>
+      <rect class="reel" x="150" y="340" width="300" height="220" rx="6"/>
+      <rect class="pf" x="282" y="318" width="36" height="22"/>
+      <rect class="pf" x="282" y="560" width="36" height="22"/>
+      <!-- idler, dancer -->
+      <rect class="st" x="465" y="320" width="30" height="260"/>
+      <rect class="p" x="545" y="320" width="30" height="260"/>
+      <rect class="st" x="645" y="320" width="30" height="260"/>
+      <!-- edge guides -->
+      <rect class="pf" x="720" y="552" width="100" height="12"/>
+      <rect class="p" x="720" y="336" width="100" height="12"/>
+      <text class="lbl" x="722" y="600">ref. edge</text>
+      <!-- feed -->
+      <rect class="st" x="855" y="310" width="50" height="280"/>
+      <rect class="pf" x="845" y="170" width="70" height="140"/>
+      <!-- ionizer, mark -->
+      <rect class="p" x="948" y="320" width="20" height="260"/>
+      <rect class="pf" x="995" y="505" width="40" height="30"/>
+      <!-- tool head -->
+      <rect class="p" x="1070" y="290" width="120" height="320"/>
+      <line x1="1150" y1="300" x2="1150" y2="600" stroke="var(--mag)" stroke-width="7"/>
+      <rect class="knife" x="1092" y="538" width="16" height="20"/>
+      <rect class="dash" x="1080" y="620" width="100" height="40"/>
+      <!-- conveyor -->
+      <rect class="o2" x="1220" y="330" width="480" height="240" fill="var(--steel)" fill-opacity=".35"/>
+      <g class="thin"><line x1="1220" y1="360" x2="1700" y2="360"/><line x1="1220" y1="540" x2="1700" y2="540"/></g>
+      <rect class="pf" x="1660" y="240" width="50" height="90"/>
+      <g class="webf">
+        <path d="M1250,350 h100 v200 h-50 l-6,-6 l-6,6 h-38 z"/>
+        <path d="M1410,350 h100 v200 h-50 l-6,-6 l-6,6 h-38 z"/>
+        <path d="M1570,350 h100 v200 h-50 l-6,-6 l-6,6 h-38 z"/>
+      </g>
+      <rect class="o2" x="1705" y="320" width="85" height="260" fill="var(--blue-f)"/>
+      <!-- HMI, tower -->
+      <line x1="1360" y1="825" x2="1360" y2="860" stroke="var(--line)" stroke-width="5"/>
+      <rect class="pf" x="1300" y="860" width="120" height="60"/>
+      <circle cx="1760" cy="120" r="18" class="pf"/>
+      <!-- operator -->
+      <text class="lbl" x="560" y="900">SISI OPERATOR</text>
+      <path d="M520,930 v-60" class="dim" marker-end="url(#ar)"/>
+      <!-- dims -->
+      <g class="dim"><line x1="100" y1="835" x2="100" y2="990"/><line x1="1800" y1="835" x2="1800" y2="990"/><line x1="100" y1="975" x2="1800" y2="975" marker-start="url(#ar)" marker-end="url(#ar)"/></g>
+      <text class="dimt" x="950" y="965" text-anchor="middle">1700</text>
+      <g class="dim"><line x1="90" y1="75" x2="30" y2="75"/><line x1="90" y1="825" x2="30" y2="825"/><line x1="45" y1="75" x2="45" y2="825" marker-start="url(#ar)" marker-end="url(#ar)"/></g>
+      <text class="dimt" x="35" y="450" transform="rotate(-90 35 450)" text-anchor="middle">750</text>
+      <g class="dim"><line x1="1205" y1="350" x2="1205" y2="550" marker-start="url(#ar)" marker-end="url(#ar)"/></g>
+      <text class="dimt" x="1196" y="450" transform="rotate(-90 1196 450)" text-anchor="middle">200</text>
+      <g class="dim"><line x1="1100" y1="285" x2="1100" y2="250"/><line x1="1150" y1="295" x2="1150" y2="250"/><line x1="1100" y1="262" x2="1150" y2="262" marker-start="url(#ar)" marker-end="url(#ar)"/></g>
+      <text class="dimt" x="1125" y="244" text-anchor="middle">50</text>
+      <text class="lbl" x="1765" y="1035" text-anchor="end">850 termasuk HMI</text>
+      <!-- balloons -->
+      <g class="bl"><line x1="200" y1="62" x2="230" y2="342"/><circle cx="200" cy="40" r="22"/><text x="200" y="40">1</text></g>
+      <g class="bl"><line x1="470" y1="62" x2="480" y2="320"/><circle cx="470" cy="40" r="22"/><text x="470" y="40">2</text></g>
+      <g class="bl"><line x1="560" y1="62" x2="560" y2="320"/><circle cx="560" cy="40" r="22"/><text x="560" y="40">3</text></g>
+      <g class="bl"><line x1="770" y1="272" x2="770" y2="336"/><circle cx="770" cy="250" r="22"/><text x="770" y="250">4</text></g>
+      <g class="bl"><line x1="880" y1="62" x2="880" y2="170"/><circle cx="880" cy="40" r="22"/><text x="880" y="40">5</text></g>
+      <g class="bl"><line x1="980" y1="272" x2="960" y2="320"/><circle cx="985" cy="250" r="22"/><text x="985" y="250">6</text></g>
+      <g class="bl"><line x1="1015" y1="678" x2="1015" y2="535"/><circle cx="1015" cy="700" r="22"/><text x="1015" y="700">7</text></g>
+      <g class="bl"><line x1="1130" y1="62" x2="1130" y2="290"/><circle cx="1130" cy="40" r="22"/><text x="1130" y="40">8</text></g>
+      <g class="bl"><line x1="1450" y1="272" x2="1450" y2="330"/><circle cx="1450" cy="250" r="22"/><text x="1450" y="250">10</text></g>
+      <g class="bl"><line x1="1745" y1="678" x2="1745" y2="580"/><circle cx="1745" cy="700" r="22"/><text x="1745" y="700">11</text></g>
+      <g class="bl"><line x1="690" y1="740" x2="652" y2="700"/><circle cx="705" cy="760" r="22"/><text x="705" y="760">12</text></g>
+      <g class="bl"><line x1="1478" y1="890" x2="1420" y2="890"/><circle cx="1500" cy="890" r="22"/><text x="1500" y="890">13</text></g>
+      <g class="bl"><line x1="1702" y1="120" x2="1742" y2="120"/><circle cx="1680" cy="120" r="22"/><text x="1680" y="120">15</text></g>
+    </svg>
+    </div>
+
+    <div class="view-label">Tampak samping (depan)</div>
+    <div class="scroll">
+    <svg class="dwg" viewBox="0 60 1900 1640" role="img" aria-label="Tampak samping mesin">
+      <!-- floor -->
+      <line class="ground" x1="40" y1="1600" x2="1860" y2="1600"/>
+      <!-- legs & frame -->
+      <rect class="st" x="110" y="650" width="40" height="930"/>
+      <rect class="st" x="930" y="650" width="40" height="930"/>
+      <rect class="st" x="1750" y="650" width="40" height="930"/>
+      <g class="pf"><rect x="100" y="1580" width="60" height="20"/><rect x="920" y="1580" width="60" height="20"/><rect x="1740" y="1580" width="60" height="20"/></g>
+      <rect class="st" x="100" y="630" width="1700" height="20"/>
+      <rect class="st" x="100" y="1450" width="1700" height="20"/>
+      <!-- panel, vacuum -->
+      <rect class="p" x="300" y="880" width="600" height="520"/>
+      <text class="lbl" x="600" y="1150" text-anchor="middle">PANEL LISTRIK IP54</text>
+      <rect class="p" x="1050" y="1100" width="240" height="300"/>
+      <text class="lbl" x="1170" y="1260" text-anchor="middle">VAKUM</text>
+      <text class="lbl" x="1170" y="1288" text-anchor="middle">HEPA</text>
+      <rect class="st" x="1110" y="650" width="40" height="450"/>
+      <!-- unwinder -->
+      <rect class="pf" x="240" y="380" width="30" height="250"/>
+      <circle class="reel" cx="300" cy="450" r="150"/>
+      <circle cx="300" cy="450" r="38" fill="var(--sheet)" stroke="var(--line)" stroke-width="2"/>
+      <circle cx="300" cy="450" r="16" class="pf"/>
+      <circle cx="300" cy="450" r="55" class="dash"/>
+      <!-- web path -->
+      <polyline class="webl" points="300,600 480,600 560,460 680,600 1150,600"/>
+      <!-- idlers / dancer -->
+      <circle cx="480" cy="585" r="15" class="st"/>
+      <rect class="pf" x="630" y="560" width="20" height="70"/>
+      <line x1="640" y1="560" x2="560" y2="480" stroke="var(--blue)" stroke-width="10" stroke-linecap="round"/>
+      <circle cx="560" cy="480" r="20" class="p"/>
+      <circle cx="680" cy="585" r="15" class="st"/>
+      <!-- edge guide -->
+      <rect class="pf" x="720" y="590" width="100" height="10"/>
+      <!-- feed -->
+      <circle cx="880" cy="625" r="25" class="st"/>
+      <circle cx="880" cy="575" r="25" class="st"/>
+      <circle cx="880" cy="625" r="40" class="dash"/>
+      <rect class="pf" x="865" y="500" width="30" height="50"/>
+      <!-- ionizer / mark -->
+      <rect class="p" x="948" y="545" width="20" height="40"/>
+      <rect class="pf" x="995" y="520" width="40" height="50"/>
+      <line x1="1015" y1="570" x2="1015" y2="598" stroke="var(--mag)" stroke-width="2" stroke-dasharray="5 4"/>
+      <!-- tool head -->
+      <rect class="st" x="1070" y="380" width="15" height="250"/>
+      <rect class="st" x="1175" y="380" width="15" height="250"/>
+      <rect class="pf" x="1070" y="370" width="120" height="20"/>
+      <rect class="p" x="1110" y="290" width="40" height="80"/>
+      <line x1="1130" y1="390" x2="1130" y2="520" stroke="var(--line)" stroke-width="6"/>
+      <rect class="pf" x="1085" y="520" width="90" height="20"/>
+      <rect class="knife" x="1146" y="540" width="8" height="52"/>
+      <rect class="knife" x="1096" y="540" width="8" height="52"/>
+      <rect class="st" x="1085" y="605" width="95" height="25"/>
+      <!-- conveyor -->
+      <rect class="st" x="1220" y="600" width="480" height="30"/>
+      <circle cx="1235" cy="615" r="15" class="pf"/>
+      <circle cx="1685" cy="615" r="15" class="pf"/>
+      <g fill="var(--web)"><rect x="1260" y="593" width="100" height="7"/><rect x="1420" y="593" width="100" height="7"/><rect x="1580" y="593" width="100" height="7"/></g>
+      <rect class="o2" x="1705" y="585" width="85" height="45" fill="var(--blue-f)"/>
+      <!-- cover -->
+      <rect class="dash" x="650" y="250" width="1140" height="380"/>
+      <!-- HMI & tower -->
+      <line x1="1360" y1="260" x2="1360" y2="630" stroke="var(--line)" stroke-width="8"/>
+      <rect class="pf" x="1300" y="170" width="120" height="90"/>
+      <rect x="1750" y="100" width="30" height="50" fill="#d8352a"/>
+      <rect x="1750" y="150" width="30" height="50" fill="#e8a317"/>
+      <rect x="1750" y="200" width="30" height="50" fill="#2e9e4f"/>
+      <!-- dims -->
+      <g class="dim"><line x1="1790" y1="100" x2="1880" y2="100"/><line x1="1865" y1="100" x2="1865" y2="1600" marker-start="url(#ar)" marker-end="url(#ar)"/></g>
+      <text class="dimt" x="1855" y="850" transform="rotate(-90 1855 850)" text-anchor="middle">1500</text>
+      <g class="dim"><line x1="240" y1="600" x2="40" y2="600"/><line x1="55" y1="600" x2="55" y2="1600" marker-start="url(#ar)" marker-end="url(#ar)"/></g>
+      <text class="dimt" x="45" y="1100" transform="rotate(-90 45 1100)" text-anchor="middle">1000 pass line</text>
+      <g class="dim"><line x1="100" y1="630" x2="80" y2="630"/></g>
+      <text class="lbl" x="160" y="1640">Tinggi meja ±970 · pass line web 1000</text>
+      <!-- balloons -->
+      <g class="bl"><line x1="300" y1="222" x2="300" y2="300"/><circle cx="300" cy="200" r="22"/><text x="300" y="200">1</text></g>
+      <g class="bl"><line x1="1130" y1="222" x2="1130" y2="290"/><circle cx="1130" cy="200" r="22"/><text x="1130" y="200">8</text></g>
+      <g class="bl"><line x1="1378" y1="1250" x2="1290" y2="1250"/><circle cx="1400" cy="1250" r="22"/><text x="1400" y="1250">9</text></g>
+      <g class="bl"><line x1="1450" y1="542" x2="1450" y2="600"/><circle cx="1450" cy="520" r="22"/><text x="1450" y="520">10</text></g>
+      <g class="bl"><line x1="1478" y1="215" x2="1420" y2="215"/><circle cx="1500" cy="215" r="22"/><text x="1500" y="215">13</text></g>
+      <g class="bl"><line x1="600" y1="1508" x2="600" y2="1400"/><circle cx="600" cy="1530" r="22"/><text x="600" y="1530">14</text></g>
+      <g class="bl"><line x1="1702" y1="150" x2="1750" y2="150"/><circle cx="1680" cy="150" r="22"/><text x="1680" y="150">15</text></g>
+    </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3D ============ -->
+<section>
+  <h2><span>02</span>Model 3D</h2>
+  <p class="note">Putar dengan drag, zoom dengan scroll atau pinch. Arahkan kursor ke daftar komponen untuk menandai bagiannya di model. Animasi menunjukkan siklus feed → stroke punch + potong → pouch keluar.</p>
+  <div class="viewer">
+    <div id="stage">
+      <div class="tools">
+        <button class="btn" id="bAnim" aria-pressed="true">Animasi</button>
+        <button class="btn" id="bCover" aria-pressed="true">Cover</button>
+        <button class="btn" id="bReset">Reset kamera</button>
+      </div>
+      <div class="hint">Drag: putar · Shift/klik kanan: geser</div>
+    </div>
+    <div class="legend">
+      <h3>Komponen</h3>
+      <ol id="legend"></ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DETAIL ============ -->
+<section>
+  <h2><span>03</span>Detail proses</h2>
+  <div class="two">
+    <div class="card">
+      <div class="head"><b>Produk: pouch</b>
+        <div class="seg" id="seg" role="group" aria-label="Pilih pitch">
+          <button data-l="80">80</button><button data-l="100" aria-pressed="true">100</button><button data-l="120">120</button><button data-l="150">150</button><button data-l="200">200</button>
+        </div>
+      </div>
+      <svg id="pouch" viewBox="0 0 900 560" role="img" aria-label="Gambar produk pouch"></svg>
+      <div class="body">Notch selalu 50 mm dari tepi depan, untuk semua pitch. Asumsi: "tepi" yang dimaksud adalah tepi depan searah aliran web. <span class="tag">KONFIRMASI</span></div>
+    </div>
+    <div class="card">
+      <div class="head"><b>Tool head: punch + pisau</b></div>
+      <svg viewBox="0 0 900 460" role="img" aria-label="Penampang tool head">
+        <line x1="40" y1="300" x2="860" y2="300" stroke="var(--web)" stroke-width="8"/>
+        <path d="M60,270 l60,0" class="dim" marker-end="url(#ar)"/>
+        <text class="lbl" x="60" y="258">ARAH WEB</text>
+        <!-- cylinder -->
+        <rect class="p" x="440" y="30" width="80" height="80"/>
+        <line x1="480" y1="110" x2="480" y2="170" stroke="var(--line)" stroke-width="10"/>
+        <rect class="pf" x="320" y="170" width="320" height="34"/>
+        <!-- punch -->
+        <rect class="knife" x="368" y="204" width="24" height="92"/>
+        <path d="M368,296 l12,12 l12,-12 z" class="knife"/>
+        <!-- blade -->
+        <rect class="knife" x="572" y="204" width="16" height="92"/>
+        <!-- die -->
+        <rect class="st" x="300" y="306" width="290" height="60"/>
+        <rect class="st" x="590" y="306" width="60" height="60"/>
+        <path d="M600,376 v30 m-10,-24 l20,8 l-20,8 l20,8" class="o2"/>
+        <text class="lbl" x="660" y="398">pegas</text>
+        <!-- dims -->
+        <g class="dim"><line x1="380" y1="220" x2="380" y2="140"/><line x1="580" y1="220" x2="580" y2="140"/><line x1="380" y1="150" x2="580" y2="150" marker-start="url(#ar)" marker-end="url(#ar)"/></g>
+        <text class="dimt" x="480" y="140" text-anchor="middle" style="font-size:26px">50</text>
+        <text class="lbl" x="250" y="230" text-anchor="end">punch V90°</text>
+        <text class="lbl" x="610" y="235">pisau atas</text>
+        <text class="lbl" x="300" y="398">die punch + pisau bawah (SKD11)</text>
+        <text class="lbl" x="120" y="340">pouch n+1</text>
+        <text class="lbl" x="700" y="340">pouch n</text>
+        <text class="lbl" x="540" y="62">silinder pneumatik</text>
+      </svg>
+      <div class="body">
+        <ol class="seq">
+          <li>Servo feed cepat, lalu pelan saat mencari tanda cetak.</li>
+          <li>Mark sensor terpicu, servo berhenti di offset resep.</li>
+          <li>Satu stroke turun: notch untuk pouch n+1, potong pouch n.</li>
+          <li>Ram naik, sensor home pisau aktif.</li>
+          <li>Conveyor membawa pouch ke tray, counter +1.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SPEC ============ -->
+<section>
+  <h2><span>04</span>Data teknis konsep</h2>
+  <div class="card scroll">
+  <table>
+    <tr><th>Material</th><td>Flat reel sterilisasi kertas medis + film PET/PP, lebar 200</td></tr>
+    <tr><th>Pitch potong</th><td>80 / 100 / 120 / 150 / 200 mm, resep di HMI, terkunci ke tanda cetak</td></tr>
+    <tr><th>Akurasi panjang</th><td>±0,5 mm terhadap tanda cetak</td></tr>
+    <tr><th>Notch</th><td>V 90°, kedalaman 3, bukaan 6, berjarak 50 dari tepi depan, sisi referensi</td></tr>
+    <tr><th>Kapasitas</th><td>25–35 pcs/menit</td></tr>
+    <tr><th>Reel</th><td>Ø luar maks 300, core 40–76 (cone chuck), berat maks 10 kg <span class="tag">VERIFIKASI</span></td></tr>
+    <tr><th>Penggerak</th><td>Servo 400 W untuk feed, silinder pneumatik untuk tool head, motor conveyor 40 W</td></tr>
+    <tr><th>Kontrol</th><td>PLC output pulsa + HMI 7", counter batch, alarm reel habis dan web putus</td></tr>
+    <tr><th>Cleanroom</th><td>Rangka dan cover SUS304, udara oil-free 0,01 µm, exhaust disalurkan, vakum HEPA, ionizer, panel IP54 <span class="tag">KELAS?</span></td></tr>
+    <tr><th>Safety</th><td>Cover polikarbonat dengan interlock, E-stop, dump valve pneumatik, signal tower</td></tr>
+    <tr><th>Dimensi</th><td>±1700 × 750 (850 dengan HMI) × 1500 mm, berat estimasi ±250 kg</td></tr>
+    <tr><th>Utilitas</th><td>220 V 1 fasa ±1,5 kW, udara 0,5–0,6 MPa</td></tr>
+  </table>
+  </div>
+</section>
+
+<div class="tb" role="contentinfo">
+  <div class="co"><span>Perusahaan</span><b>PT GLOBAL INTI SINERGI</b></div>
+  <div><span>Judul</span><b>Auto Cut &amp; Notch — Sterilization Reel 200</b></div>
+  <div><span>Unit</span><b>mm</b></div>
+  <div><span>Skala</span><b>NTS</b></div>
+  <div><span>Rev</span><b>K0</b></div>
+  <div><span>Lembar</span><b>1 / 1</b></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ---------- Legend data ---------- */
+const PARTS=[
+ [1,"Unwinder","Cone chuck, rem friksi, reel Ø maks 300"],
+ [2,"Idler roller","Mengarahkan web"],
+ [3,"Dancer arm","Menjaga tegangan web saat feed intermittent"],
+ [4,"Edge guide","Tepi referensi tetap (sisi notch), sisi lain berpegas"],
+ [5,"Feed pinch roller + servo","Rol karet Ø50, nip pneumatik"],
+ [6,"Ionizer bar","Menetralkan listrik statis film"],
+ [7,"Mark sensor","Registrasi ke tanda cetak"],
+ [8,"Tool head","Punch notch + guillotine, satu silinder"],
+ [9,"Unit vakum HEPA","Menyedot debu potong dan slug notch"],
+ [10,"Conveyor output","Belt, counter pouch"],
+ [11,"Tray penampung","Pouch jadi"],
+ [12,"Safety cover","Polikarbonat, pintu interlock"],
+ [13,"HMI 7\"","Resep pitch, batch, alarm"],
+ [14,"Panel listrik","PLC, driver servo, IP54"],
+ [15,"Signal tower","Merah / kuning / hijau"]
+];
+const lg=document.getElementById('legend');
+PARTS.forEach(([n,t,s])=>{const li=document.createElement('li');li.tabIndex=0;li.dataset.id=n;li.innerHTML=`<span class="n">${n}</span><span>${t}<small>${s}</small></span>`;lg.appendChild(li)});
+
+/* ---------- Pouch drawing ---------- */
+const pouch=document.getElementById('pouch');
+function drawPouch(L){
+  const s=1.6,x0=150,y0=90,W=200*s,Lp=L*s,x1=x0+Lp,yb=y0+W,seal=10*s;
+  const xn=x1-50*s,d=3*s;
+  const out=`M${x0},${y0} H${x1} V${yb} H${xn+d} L${xn},${yb-d} L${xn-d},${yb} H${x0} Z`;
+  pouch.innerHTML=`
+  <defs><marker id="ar2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="var(--mag)"/></marker></defs>
+  <path d="${out}" class="webf" stroke-width="2.5"/>
+  <rect x="${x0}" y="${y0}" width="${Lp}" height="${seal}" fill="var(--web)" opacity=".45"/>
+  <rect x="${x0}" y="${yb-seal}" width="${Lp}" height="${seal}" fill="var(--web)" opacity=".45"/>
+  <text class="lbl" x="${x0+8}" y="${y0+seal+26}" style="font-size:18px">side seal</text>
+  <path d="M${x1+20},${y0+W/2} h50" class="dim" marker-end="url(#ar2)"/>
+  <text class="lbl" x="${x1+20}" y="${y0+W/2-12}" style="font-size:18px">arah web</text>
+  <g class="dim"><line x1="${x0-10}" y1="${y0}" x2="${x0-60}" y2="${y0}"/><line x1="${x0-10}" y1="${yb}" x2="${x0-60}" y2="${yb}"/><line x1="${x0-45}" y1="${y0}" x2="${x0-45}" y2="${yb}" marker-start="url(#ar2)" marker-end="url(#ar2)"/></g>
+  <text class="dimt" x="${x0-55}" y="${y0+W/2}" transform="rotate(-90 ${x0-55} ${y0+W/2})" text-anchor="middle">200</text>
+  <g class="dim"><line x1="${x0}" y1="${yb+5}" x2="${x0}" y2="${yb+80}"/><line x1="${x1}" y1="${yb+5}" x2="${x1}" y2="${yb+80}"/><line x1="${xn}" y1="${yb+5}" x2="${xn}" y2="${yb+45}"/>
+   <line x1="${x0}" y1="${yb+70}" x2="${x1}" y2="${yb+70}" marker-start="url(#ar2)" marker-end="url(#ar2)"/>
+   <line x1="${xn}" y1="${yb+35}" x2="${x1}" y2="${yb+35}" marker-start="url(#ar2)" marker-end="url(#ar2)"/></g>
+  <text class="dimt" x="${(x0+x1)/2}" y="${yb+100}" text-anchor="middle">L = ${L}</text>
+  <text class="dimt" x="${(xn+x1)/2}" y="${yb+28}" text-anchor="middle" style="font-size:20px">50</text>
+  <circle cx="${xn}" cy="${yb}" r="22" fill="none" stroke="var(--mag)" stroke-width="2"/>
+  <line x1="${xn+16}" y1="${yb-16}" x2="682" y2="300" stroke="var(--mag)" stroke-width="1.5"/>
+  <circle cx="760" cy="330" r="110" fill="var(--sheet)" stroke="var(--mag)" stroke-width="2"/>
+  <path d="M665,370 H730 L760,340 L790,370 H855" fill="none" stroke="var(--line)" stroke-width="4"/>
+  <g class="dim"><line x1="730" y1="385" x2="790" y2="385" marker-start="url(#ar2)" marker-end="url(#ar2)"/><line x1="815" y1="340" x2="815" y2="370" marker-start="url(#ar2)" marker-end="url(#ar2)"/></g>
+  <text class="dimt" x="760" y="412" text-anchor="middle" style="font-size:20px">6</text>
+  <text class="dimt" x="826" y="362" style="font-size:20px">3</text>
+  <text class="dimt" x="760" y="315" text-anchor="middle" style="font-size:20px">90°</text>
+  <text class="lbl" x="760" y="262" text-anchor="middle" style="font-size:17px">DETAIL NOTCH 10:1</text>`;
+}
+document.querySelectorAll('#seg button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));drawPouch(+b.dataset.l)}));
+drawPouch(100);
+
+/* ---------- 3D ---------- */
+(function(){
+const stage=document.getElementById('stage');
+if(!window.THREE){const d=document.createElement('div');d.className='fail';d.textContent='Model 3D tidak bisa dimuat di browser ini. Gambar 2D di atas tetap berlaku.';stage.appendChild(d);return}
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const scene=new THREE.Scene();
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+stage.prepend(renderer.domElement);
+const cam=new THREE.PerspectiveCamera(38,1,10,30000);
+const ctr=new THREE.OrbitControls(cam,renderer.domElement);
+ctr.enableDamping=true;
+function resetCam(){cam.position.set(1500,1900,2300);ctr.target.set(0,950,0);ctr.update()}
+resetCam();
+scene.add(new THREE.HemisphereLight(0xffffff,0x667088,.75));
+const dl=new THREE.DirectionalLight(0xffffff,.75);dl.position.set(1500,3000,2000);scene.add(dl);
+const grid=new THREE.GridHelper(4000,40,0x8890a8,0x8890a8);grid.material.opacity=.25;grid.material.transparent=true;scene.add(grid);
+
+function theme(){
+  scene.background=new THREE.Color(css('--sheet')||'#fbfbf8');
+}
+theme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',theme);
+new MutationObserver(theme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+const groups={};
+const C={steel:0xc5cad3,blue:0x2b3ea6,dark:0x3a4356,web:0x8fd3e0,mag:0xc0177a,roll:0x9aa1ad,rub:0x2a2e36};
+function mat(c,o={}){return new THREE.MeshStandardMaterial(Object.assign({color:c,metalness:.35,roughness:.55},o))}
+// convert drawing coords: side x (mm), height h, top y -> z
+const X=x=>x-950, Z=y=>y-450;
+function add(id,mesh){scene.add(mesh);(groups[id]=groups[id]||[]).push(mesh);return mesh}
+function box(id,x0,x1,h0,h1,y0,y1,c,o){const m=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,h1-h0,y1-y0),mat(c,o));m.position.set(X((x0+x1)/2),(h0+h1)/2,Z((y0+y1)/2));return add(id,m)}
+function cylZ(id,x,h,r,y0,y1,c){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,y1-y0,32),mat(c));m.rotation.x=Math.PI/2;m.position.set(X(x),h,Z((y0+y1)/2));return add(id,m)}
+function cylY(id,x,y,r,h0,h1,c){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h1-h0,24),mat(c));m.position.set(X(x),(h0+h1)/2,Z(y));return add(id,m)}
+function strip(id,a,b,c){ // web segment in X-H plane, width 200 in z
+  const dx=b[0]-a[0],dh=b[1]-a[1],len=Math.hypot(dx,dh);
+  const m=new THREE.Mesh(new THREE.BoxGeometry(len,1.5,200),mat(c,{metalness:0,roughness:.9,transparent:true,opacity:.85}));
+  m.position.set(X((a[0]+b[0])/2),(a[1]+b[1])/2,0);m.rotation.z=Math.atan2(dh,dx);return add(id,m)}
+
+// frame (0 = frame, not in legend)
+[[110,150],[930,970],[1750,1790]].forEach(([a,b])=>{[[75,115],[785,825]].forEach(([c,d])=>{box(0,a,b,20,950,c,d,C.steel);box(0,a-10,b+10,0,20,c-5,d+5,C.dark)})});
+box(0,100,1800,950,970,75,825,C.steel);
+box(0,100,1800,130,150,75,825,C.steel);
+// 14 panel, 9 vacuum
+box(14,300,900,200,720,150,750,C.blue,{metalness:.2});
+box(9,1050,1290,200,500,300,600,C.blue,{metalness:.2});
+cylY(9,1130,450,22,500,960,C.steel);
+// 1 unwinder
+box(1,240,360,970,1230,255,275,C.blue);
+box(1,255,345,1100,1200,175,255,C.dark);
+cylZ(1,300,1150,15,255,600,C.steel);
+cylZ(1,300,1150,150,350,550,C.web).material.roughness=.9;
+cylZ(1,300,1150,40,318,350,C.blue);cylZ(1,300,1150,40,550,582,C.blue);
+// 2 idlers, 3 dancer
+cylZ(2,480,1015,15,320,580,C.roll);cylZ(2,680,1015,15,320,580,C.roll);
+box(2,470,490,970,1015,300,320,C.steel);box(2,670,690,970,1015,300,320,C.steel);
+cylZ(3,560,1120,20,320,580,C.blue);
+(function(){const a=[640,1040],b=[560,1120];const len=Math.hypot(b[0]-a[0],b[1]-a[1]);const m=new THREE.Mesh(new THREE.BoxGeometry(len,14,14),mat(C.blue));m.position.set(X((a[0]+b[0])/2),(a[1]+b[1])/2,Z(305));m.rotation.z=Math.atan2(b[1]-a[1],b[0]-a[0]);add(3,m);box(3,630,650,970,1045,295,315,C.blue)})();
+// web
+strip(0,[300,1000],[480,1000],C.web);strip(0,[480,1000],[560,1140],C.web);strip(0,[560,1140],[680,1000],C.web);strip(0,[680,1000],[1150,1000],C.web);
+// 4 edge guides
+box(4,720,820,1000,1018,552,564,C.blue);box(4,720,820,1000,1018,336,348,C.blue);
+// 5 feed
+cylZ(5,880,975,25,310,590,C.rub);cylZ(5,880,1025,25,310,590,C.roll);
+box(5,845,915,940,1010,170,310,C.dark);
+box(5,850,910,970,1060,290,305,C.steel);box(5,850,910,970,1060,595,610,C.steel);
+box(5,865,895,1060,1110,290,305,C.blue);box(5,865,895,1060,1110,595,610,C.blue);
+// 6 ionizer, 7 mark
+box(6,948,968,1015,1055,320,580,C.blue);
+box(7,995,1035,1030,1080,505,535,C.dark);
+// 8 tool head
+[[1070,1085],[1175,1190]].forEach(([a,b])=>[[290,310],[590,610]].forEach(([c,d])=>box(8,a,b,970,1220,c,d,C.steel)));
+box(8,1070,1190,1210,1230,290,610,C.blue);
+cylY(8,1130,450,22,1230,1310,C.blue);
+box(8,1085,1180,970,995,300,600,C.steel);
+const ram=new THREE.Group();scene.add(ram);
+[box(8,1085,1175,1060,1080,300,600,C.blue),box(8,1146,1154,1005,1060,340,560,C.mag),box(8,1095,1105,1005,1060,540,560,C.mag),cylY(8,1130,450,8,1080,1230,C.steel)].forEach(m=>{scene.remove(m);ram.add(m)});
+// 10 conveyor
+box(10,1220,1700,970,1000,330,570,C.dark,{metalness:.1,roughness:.9});
+cylZ(10,1235,985,15,330,570,C.steel);cylZ(10,1685,985,15,330,570,C.steel);
+box(10,1660,1710,960,1010,240,330,C.blue);
+box(10,1280,1300,1000,1040,520,540,C.dark);
+// 11 tray
+box(11,1705,1790,970,978,320,580,C.blue);box(11,1705,1710,970,1010,320,580,C.blue);box(11,1785,1790,970,1010,320,580,C.blue);
+box(11,1705,1790,970,1010,320,325,C.blue);box(11,1705,1790,970,1010,575,580,C.blue);
+// 12 cover
+const cov=new THREE.Group();scene.add(cov);
+const cg=new THREE.BoxGeometry(1140,380,710);
+const cm=new THREE.Mesh(cg,new THREE.MeshStandardMaterial({color:0xaad4ff,transparent:true,opacity:.12,roughness:.1,depthWrite:false}));
+const ce=new THREE.LineSegments(new THREE.EdgesGeometry(cg),new THREE.LineBasicMaterial({color:0x7c8aa8}));
+[cm,ce].forEach(m=>{m.position.set(X(1220),970+190,Z(450));cov.add(m)});
+(groups[12]=groups[12]||[]).push(cm);
+// 13 HMI
+box(13,1355,1365,960,1300,825,840,C.steel);
+const hmi=box(13,1300,1420,1250,1340,840,860,C.dark);hmi.rotation.x=-.3;
+box(13,1306,1414,1256,1334,861,862,0x3e7fb8,{emissive:0x12324d});
+// 15 tower
+cylY(15,1760,120,14,1350,1400,0x2e9e4f);cylY(15,1760,120,14,1400,1450,0xe8a317);cylY(15,1760,120,14,1450,1500,0xd8352a);
+cylY(15,1760,120,5,970,1350,C.steel);
+
+// highlight
+const em=new THREE.Color(0xc0177a);
+function hl(id,on){(groups[id]||[]).forEach(m=>{if(m.material.emissive){m.material.emissive.copy(on?em:new THREE.Color(0));m.material.emissiveIntensity=on?.55:1}})}
+lg.querySelectorAll('li').forEach(li=>{const id=+li.dataset.id;
+  const on=()=>{li.classList.add('on');hl(id,true)},off=()=>{li.classList.remove('on');hl(id,false)};
+  li.addEventListener('mouseenter',on);li.addEventListener('mouseleave',off);li.addEventListener('focus',on);li.addEventListener('blur',off)});
+
+// pieces animation
+const pieces=[];const pGeo=new THREE.BoxGeometry(100,1.5,200);const pMat=mat(C.web,{metalness:0,roughness:.9});
+let anim=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+const bA=document.getElementById('bAnim');bA.setAttribute('aria-pressed',anim);
+bA.onclick=()=>{anim=!anim;bA.setAttribute('aria-pressed',anim)};
+const bC=document.getElementById('bCover');bC.onclick=()=>{cov.visible=!cov.visible;bC.setAttribute('aria-pressed',cov.visible)};
+document.getElementById('bReset').onclick=resetCam;
+
+let t=0,last=performance.now(),cutDone=false;const T=2.0;
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(stage);resize();
+function loop(now){
+  const dt=Math.min((now-last)/1000,.05);last=now;
+  if(anim){
+    t=(t+dt)%T;const ph=t/T;
+    let dy=0;if(ph>.55&&ph<.8){const k=(ph-.55)/.25;dy=-Math.sin(k*Math.PI)*45}
+    ram.position.y=dy;
+    if(ph>.67&&!cutDone){cutDone=true;const p=new THREE.Mesh(pGeo,pMat);p.position.set(X(1150+50),1001,0);scene.add(p);pieces.push(p)}
+    if(ph<.5)cutDone=false;
+    for(let i=pieces.length-1;i>=0;i--){const p=pieces[i];p.position.x+=dt*260;
+      if(p.position.x>X(1748)){p.position.y-=dt*200;if(p.position.y<980){scene.remove(p);pieces.splice(i,1)}}}
+  }
+  ctr.update();renderer.render(scene,cam);requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>
