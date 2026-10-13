@@ -104,7 +104,25 @@ td{font-variant-numeric:tabular-nums}
 .tb b{font-weight:500;color:var(--ink)}
 .tb .co b{font-family:"Times New Roman",serif;font-size:16px;font-weight:700}
 
+/* drawing set */
+.dwgset{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.dw{margin:0;background:var(--sheet);border:1.5px solid var(--line);cursor:zoom-in;display:flex;flex-direction:column;min-width:0;transition:transform .15s}
+.dw:hover{transform:translateY(-2px)}
+.dw:focus-visible{outline:2px solid var(--mag);outline-offset:2px}
+.dw img{display:block;width:100%;aspect-ratio:420/297;object-fit:contain;background:#fff;border-bottom:1px solid var(--line)}
+.dw figcaption{padding:10px 12px;font-size:14px;font-weight:500}
+.dw figcaption b{font-family:var(--f-mono);color:var(--mag);font-weight:500;margin-right:6px}
+.dw figcaption small{display:block;color:var(--muted);font-weight:400;font-size:12.5px;margin-top:2px}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(10,14,24,.92);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.lb-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;color:#e2e7f3;font-family:var(--f-mono);font-size:13px;flex-wrap:wrap}
+.lb-btns{display:flex;gap:6px}
+.lb .btn{background:#151c2b;color:#e2e7f3;border-color:#a3b3dc}
+.lb-view{flex:1;overflow:auto;display:grid;place-items:center;padding:0 16px 16px}
+.lb-view img{max-width:100%;max-height:100%;background:#fff;display:block}
+.lb-view.z{place-items:start}
+.lb-view.z img{max-width:none;max-height:none;width:2200px}
 @media (max-width:860px){
+  .dwgset{grid-template-columns:1fr}
   .viewer{grid-template-columns:1fr}
   .legend{border-left:0;border-top:1.5px solid var(--line)}
   .legend ol{max-height:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
@@ -401,6 +419,30 @@ td{font-variant-numeric:tabular-nums}
   </div>
 </section>
 
+<!-- ============ DRAWING ============ -->
+<section id="drawing">
+  <h2><span>05</span>Drawing penawaran</h2>
+  <p class="note">Lampiran penawaran GIS-QT-2610-01, 3 lembar A3, Rev 0. Klik lembar untuk memperbesar.</p>
+  <div class="dwgset">
+    <figure class="dw" tabindex="0" data-i="0"><img src="sheets/sheet-1.webp" alt="Lembar 1 — General arrangement" loading="lazy"><figcaption><b>01</b> General arrangement <small>Tampak depan, atas, kanan · part list · notes · 1:15</small></figcaption></figure>
+    <figure class="dw" tabindex="0" data-i="1"><img src="sheets/sheet-2.webp" alt="Lembar 2 — Isometric view" loading="lazy"><figcaption><b>02</b> Isometric view <small>Render 3D · spesifikasi teknis · scope of supply</small></figcaption></figure>
+    <figure class="dw" tabindex="0" data-i="2"><img src="sheets/sheet-3.webp" alt="Lembar 3 — Product &amp; process detail" loading="lazy"><figcaption><b>03</b> Product &amp; process detail <small>Pouch &amp; pitch · notch 5:1 · tool head · timing chart</small></figcaption></figure>
+  </div>
+</section>
+
+<div class="lb" id="lb" hidden>
+  <div class="lb-bar">
+    <span id="lbT"></span>
+    <div class="lb-btns">
+      <button class="btn" id="lbP" aria-label="Lembar sebelumnya">‹</button>
+      <button class="btn" id="lbZ">Zoom</button>
+      <button class="btn" id="lbN" aria-label="Lembar berikutnya">›</button>
+      <button class="btn" id="lbX">Tutup</button>
+    </div>
+  </div>
+  <div class="lb-view" id="lbV"><img id="lbI" alt=""></div>
+</div>
+
 <div class="tb" role="contentinfo">
   <div class="co"><span>Perusahaan</span><b>PT GLOBAL INTI SINERGI</b></div>
   <div><span>Judul</span><b>Auto Cut &amp; Notch — Sterilization Reel 200</b></div>
@@ -469,6 +511,21 @@ function drawPouch(L){
 document.querySelectorAll('#seg button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));drawPouch(+b.dataset.l)}));
 drawPouch(100);
+
+/* ---------- Drawing lightbox ---------- */
+(function(){
+  const figs=[...document.querySelectorAll('.dw')],lb=document.getElementById('lb'),img=document.getElementById('lbI'),
+        t=document.getElementById('lbT'),v=document.getElementById('lbV');let i=0;
+  function show(n){i=(n+figs.length)%figs.length;const f=figs[i];img.src=f.querySelector('img').src;img.alt=f.querySelector('img').alt;
+    t.textContent=`GIS-QT-2610-01-0${i+1} · ${f.querySelector('img').alt.split('— ')[1]} · ${i+1} / ${figs.length}`;lb.hidden=false;}
+  figs.forEach((f,n)=>{f.addEventListener('click',()=>show(n));f.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(n)}})});
+  document.getElementById('lbX').onclick=()=>{lb.hidden=true;v.classList.remove('z')};
+  document.getElementById('lbP').onclick=()=>show(i-1);
+  document.getElementById('lbN').onclick=()=>show(i+1);
+  document.getElementById('lbZ').onclick=()=>v.classList.toggle('z');
+  document.addEventListener('keydown',e=>{if(lb.hidden)return;if(e.key==='Escape'){lb.hidden=true;v.classList.remove('z')}
+    if(e.key==='ArrowRight')show(i+1);if(e.key==='ArrowLeft')show(i-1)});
+})();
 
 /* ---------- 3D ---------- */
 (function(){
