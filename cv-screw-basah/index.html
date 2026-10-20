@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulasi Screw Conveyor Basah</title>
+<style>
+  :root{
+    --ink:#1b2230; --muted:#4a5568; --navy:#1f3c78; --line:#c9d1dc; --card:#ffffffee;
+    --green:#2e9e48; --red:#d6262c; --cyan:#1aa7de;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#e9eef3;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);overflow:hidden}
+  #app{position:fixed;inset:0}
+  #labels{position:fixed;inset:0;pointer-events:none}
+  .lbl{position:absolute;transform:translate(-50%,-100%);background:#1f3c78;color:#fff;font-size:12px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap;box-shadow:0 1px 4px #0003}
+  .lbl::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:#1f3c78}
+  #panel{position:fixed;top:12px;left:12px;width:300px;max-width:calc(100vw - 24px);background:var(--card);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px #0002;font-size:13px}
+  #panel summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  #panel summary::-webkit-details-marker{display:none}
+  .ttl{font-weight:700;color:var(--navy);font-size:15px;line-height:1.2}
+  .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .chev{flex:none;width:18px;height:18px;transition:transform .2s}
+  details[open] .chev{transform:rotate(180deg)}
+  .body{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
+  .row{display:flex;align-items:center;gap:10px}
+  .pb{width:56px;height:56px;border-radius:50%;border:3px solid #fff;font-weight:800;color:#fff;font-size:13px;cursor:pointer;box-shadow:0 2px 0 #0003,inset 0 -3px 0 #0002}
+  .pb:active{transform:translateY(1px)}
+  .on{background:var(--green)} .off{background:var(--red)}
+  .lamp{width:16px;height:16px;border-radius:50%;background:#9aa3ad;box-shadow:inset 0 -2px 0 #0002}
+  .lamp.run{background:#3bd16f;box-shadow:0 0 10px #3bd16f}
+  .stat{font-weight:600}
+  label{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:12px}
+  input[type=range]{width:100%;accent-color:var(--navy);height:28px}
+  .chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:13px;min-height:28px}
+  .chk input{width:18px;height:18px;accent-color:var(--navy)}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px}
+  .kv{background:#f2f4f7;border-radius:6px;padding:8px 10px}
+  .kv b{display:block;font-size:16px;color:var(--navy)}
+  .kv span{font-size:11.5px;color:var(--muted)}
+  .views{display:flex;flex-wrap:wrap;gap:6px}
+  .views button{flex:1 1 auto;min-height:36px;border:1px solid var(--line);background:#fff;border-radius:6px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+  .views button:hover{border-color:var(--navy);color:var(--navy)}
+  .note{font-size:11.5px;color:var(--muted);line-height:1.4}
+  #brand{position:fixed;right:12px;bottom:10px;font-size:12px;color:var(--muted);background:#ffffffcc;padding:4px 8px;border-radius:6px}
+  @media (max-width:560px){ #panel{width:auto;right:12px} .lbl{font-size:11px} }
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="labels"></div>
+
+<details id="panel" open>
+  <summary>
+    <div>
+      <div class="ttl">Screw Conveyor Basah</div>
+      <div class="sub">Simulasi 3D · PT Global Inti Sinergi</div>
+    </div>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="body">
+    <div class="row">
+      <button class="pb on" id="btnOn" aria-label="Push button ON">ON</button>
+      <button class="pb off" id="btnOff" aria-label="Push button OFF">OFF</button>
+      <div class="row" style="gap:8px;margin-left:4px">
+        <div class="lamp" id="lamp" aria-hidden="true"></div>
+        <div class="stat" id="status">STOP</div>
+      </div>
+    </div>
+
+    <label for="rpm">Putaran screw: <span id="rpmVal" style="color:var(--ink);font-weight:600">56 rpm</span>
+      <input type="range" id="rpm" min="10" max="90" step="1" value="56">
+    </label>
+
+    <div class="grid2">
+      <div class="kv"><b id="kAx">–</b><span>Kecepatan aksial</span></div>
+      <div class="kv"><b id="kQ">–</b><span>Kapasitas teoritis*</span></div>
+    </div>
+
+    <div class="grid2">
+      <label class="chk"><input type="checkbox" id="cFeed" checked> Feed material</label>
+      <label class="chk"><input type="checkbox" id="cWater" checked> Air kucuran</label>
+      <label class="chk"><input type="checkbox" id="cGlass"> Body transparan</label>
+      <label class="chk"><input type="checkbox" id="cLbl" checked> Label</label>
+    </div>
+
+    <div class="views" role="group" aria-label="Sudut pandang">
+      <button data-v="iso">Iso</button>
+      <button data-v="front">Depan</button>
+      <button data-v="top">Atas</button>
+      <button data-v="inlet">Inlet</button>
+      <button data-v="drive">Penggerak</button>
+    </div>
+
+    <div class="note">*Volumetrik, fill 30%. Screw Ø240 × pitch 200, body perforated SS304 Ø8, motor 2,2 kW + NMRV090 i=25. Posisi outlet & bak penampung = asumsi ilustrasi. Geser/pinch untuk memutar & zoom.</div>
+  </div>
+</details>
+<div id="brand">PT Global Inti Sinergi · model konsep</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// ---------- dimensions (m) ----------
+const L=2.5, RI=0.127, T=0.003, ZT=0.14, HA=1.55, P=0.2, R_OUT=0.12, R_IN=0.0302;
+const XC_GB = L+0.215;               // gearbox centre
+const OUT_X0=2.26, OUT_X1=2.44;      // outlet window (assumed)
+
+// ---------- renderer / scene ----------
+const app=document.getElementById('app');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+app.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color('#e9eef3');
+const pmrem=new THREE.PMREMGenerator(renderer);
+scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
+
+const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,0.05,60);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.maxPolarAngle=Math.PI*0.495; controls.minDistance=0.6; controls.maxDistance=12;
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x9aa6b2,0.6));
+const sun=new THREE.DirectionalLight(0xffffff,1.6);
+sun.position.set(-2.5,6,4); sun.target.position.set(1.3,1,0);
+sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:1,far:15});
+scene.add(sun,sun.target);
+
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(14,10),new THREE.MeshStandardMaterial({color:'#dfe5ec',roughness:0.95}));
+floor.rotation.x=-Math.PI/2; floor.position.set(1.3,0,0); floor.receiveShadow=true; scene.add(floor);
+const grid=new THREE.GridHelper(10,40,0xc3ccd6,0xd3dae2); grid.position.set(1.3,0.001,0); scene.add(grid);
+
+// ---------- materials ----------
+const M={
+  ss:new THREE.MeshStandardMaterial({color:'#cfd4d9',metalness:0.75,roughness:0.3}),
+  ss2:new THREE.MeshStandardMaterial({color:'#b9bfc5',metalness:0.7,roughness:0.35}),
+  flight:new THREE.MeshStandardMaterial({color:'#dde1e5',metalness:0.8,roughness:0.25,side:THREE.DoubleSide}),
+  frame:new THREE.MeshStandardMaterial({color:'#2f4f8f',metalness:0.25,roughness:0.55}),
+  hopper:new THREE.MeshStandardMaterial({color:'#2f4f8f',metalness:0.25,roughness:0.55,side:THREE.DoubleSide}),
+  motor:new THREE.MeshStandardMaterial({color:'#5f7591',metalness:0.4,roughness:0.45}),
+  gb:new THREE.MeshStandardMaterial({color:'#aab0b6',metalness:0.55,roughness:0.4}),
+  dark:new THREE.MeshStandardMaterial({color:'#34373c',metalness:0.4,roughness:0.5}),
+  bin:new THREE.MeshStandardMaterial({color:'#3b8fd0',metalness:0.05,roughness:0.6,side:THREE.DoubleSide}),
+};
+
+// perforated texture (Ø8 holes, 24 mm staggered pitch)
+const cv=document.createElement('canvas'); cv.width=cv.height=128;
+const cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,128,128); cx.fillStyle='#000';
+for(const [x,y] of [[32,32],[96,96]]){cx.beginPath();cx.arc(x,y,21,0,Math.PI*2);cx.fill();}
+const holeTex=new THREE.CanvasTexture(cv); holeTex.wrapS=holeTex.wrapT=THREE.RepeatWrapping;
+const cv2=document.createElement('canvas'); cv2.width=cv2.height=128;
+const c2=cv2.getContext('2d'); c2.fillStyle='#ffffff'; c2.fillRect(0,0,128,128); c2.fillStyle='#4a5058';
+for(const [x,y] of [[32,32],[96,96]]){c2.beginPath();c2.arc(x,y,21,0,Math.PI*2);c2.fill();}
+const dotTex=new THREE.CanvasTexture(cv2); dotTex.wrapS=dotTex.wrapT=THREE.RepeatWrapping; dotTex.colorSpace=THREE.SRGBColorSpace; dotTex.anisotropy=8;
+M.body=new THREE.MeshStandardMaterial({color:'#d4d9de',map:dotTex,metalness:0.7,roughness:0.34,alphaMap:holeTex,alphaTest:0.5,side:THREE.DoubleSide});
+
+// ---------- helpers (conveyor-local: x axis, y up, z lateral; group sits at HA) ----------
+const conv=new THREE.Group(); conv.position.y=HA; scene.add(conv);
+function add(geo,mat,parent=conv,shadow=true){const m=new THREE.Mesh(geo,mat); m.castShadow=shadow; m.receiveShadow=true; parent.add(m); return m;}
+function box(x0,x1,y0,y1,z0,z1,mat,parent){const g=new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0); g.translate((x0+x1)/2,(y0+y1)/2,(z0+z1)/2); return add(g,mat,parent);}
+function cylX(r,x0,x1,y,z,mat,parent,seg=40){const g=new THREE.CylinderGeometry(r,r,x1-x0,seg); g.rotateZ(Math.PI/2); g.translate((x0+x1)/2,y,z); return add(g,mat,parent);}
+function cylY(r,y0,y1,x,z,mat,parent,seg=40){const g=new THREE.CylinderGeometry(r,r,y1-y0,seg); g.translate(x,(y0+y1)/2,z); return add(g,mat,parent);}
+
+// U-trough profile [lateral, up]
+function uProfile(r){const p=[];for(let i=0;i<8;i++)p.push([-r,ZT-ZT*i/7]);for(let i=1;i<60;i++){const a=Math.PI+Math.PI*i/60;p.push([r*Math.cos(a),r*Math.sin(a)]);}for(let i=0;i<8;i++)p.push([r,ZT*i/7]);return p;}
+function sweep(prof,x0,x1){
+  const pos=[],uv=[],idx=[]; let arc=0;
+  prof.forEach((p,i)=>{ if(i>0) arc+=Math.hypot(p[0]-prof[i-1][0],p[1]-prof[i-1][1]);
+    for(const x of [x0,x1]){pos.push(x,p[1],p[0]); uv.push(x/0.024,arc/0.024);} });
+  for(let i=0;i<prof.length-1;i++){const a=i*2,b=a+1,c=a+2,d=a+3; idx.push(a,c,b,b,c,d);}
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+const bodyIn=add(sweep(uProfile(RI),0,L),M.body); const bodyOut=add(sweep(uProfile(RI+T),0,L),M.body);
+
+// housing rails + lips
+for(const s of [1,-1]){
+  const a=s*(RI-0.002), b=s*(RI+0.058); box(0,L,ZT,ZT+0.004,Math.min(a,b),Math.max(a,b),M.ss);
+  const c=s*(RI+0.054), d=s*(RI+0.058); box(0,L,ZT-0.026,ZT,Math.min(c,d),Math.max(c,d),M.ss);
+}
+// end plates (U outline)
+function endPlate(x){
+  const sh=new THREE.Shape(); sh.moveTo(0.19,ZT+0.02); sh.lineTo(-0.19,ZT+0.02); sh.lineTo(-0.19,0); sh.absarc(0,0,0.19,Math.PI,2*Math.PI,false); sh.lineTo(0.19,ZT+0.02);
+  const g=new THREE.ExtrudeGeometry(sh,{depth:0.01,bevelEnabled:false,curveSegments:32}); g.rotateY(Math.PI/2); g.translate(x,0,0); return add(g,M.ss);
+}
+endPlate(-0.01); endPlate(L);
+
+// ---------- rotating screw ----------
+const screw=new THREE.Group(); conv.add(screw);
+cylX(R_IN,0.04,L-0.04,0,0,M.ss,screw);
+function helicoid(x0,x1){
+  const turns=(x1-x0)/P, N=Math.ceil(turns*72), R=5, pos=[], idx=[];
+  for(let i=0;i<=N;i++){const t=i/N*turns*Math.PI*2, x=x0+P*t/(Math.PI*2);
+    for(let j=0;j<=R;j++){const r=R_IN+(R_OUT-R_IN)*j/R; pos.push(x,r*Math.cos(t),r*Math.sin(t));}}
+  for(let i=0;i<N;i++)for(let j=0;j<R;j++){const a=i*(R+1)+j,b=a+1,c=a+R+1,d=c+1; idx.push(a,c,b,b,c,d);}
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+add(helicoid(0.04,L-0.04),M.flight,screw);
+cylX(0.025,-0.09,0.04,0,0,M.ss,screw); cylX(0.025,L-0.04,L+0.095,0,0,M.ss,screw); cylX(0.0175,L+0.095,L+0.18,0,0,M.ss,screw);
+const coup=cylX(0.055,L+0.075,L+0.125,0,0,M.dark,screw);
+box(L+0.07,L+0.13,0.045,0.06,-0.01,0.01,M.ss2,screw); // marker on coupling to show rotation
+
+// bearings UCF210
+function ucf(xFace,s){const x0=Math.min(xFace,xFace+s*0.038),x1=Math.max(xFace,xFace+s*0.038);
+  box(x0,x1,-0.072,0.072,-0.072,0.072,M.dark); cylX(0.05,Math.min(xFace,xFace+s*0.06),Math.max(xFace,xFace+s*0.06),0,0,M.dark);
+  for(const y of [-0.052,0.052])for(const z of [-0.052,0.052]){const xb=s>0?x1:x0; cylX(0.009,Math.min(xb,xb+s*0.008),Math.max(xb,xb+s*0.008),y,z,M.ss2,conv,6);} }
+ucf(-0.01,-1); ucf(L+0.01,1);
+
+// gearbox NMRV090 + motor 2.2 kW (vertical)
+box(L+0.13,L+0.30,-0.10,0.105,-0.115,0.115,M.gb);
+cylX(0.085,L+0.116,L+0.314,0,0,M.gb);
+for(let k=0;k<5;k++) box(L+0.145+k*0.032,L+0.151+k*0.032,-0.08,0.09,-0.128,0.128,M.gb);
+cylY(0.068,0.105,0.17,XC_GB,0,M.gb);
+cylY(0.125,0.17,0.186,XC_GB,0,M.motor);
+cylY(0.102,0.186,0.5,XC_GB,0,M.motor);
+for(let k=0;k<18;k++){const a=k/18*Math.PI*2; const g=new THREE.BoxGeometry(0.008,0.29,0.016); g.translate(0,0.35,0.106); g.rotateY(a); g.translate(XC_GB,0,0); add(g,M.motor);}
+cylY(0.098,0.5,0.57,XC_GB,0,M.motor);
+box(XC_GB-0.055,XC_GB+0.055,0.33,0.44,0.102,0.17,M.motor);
+// motor bracket box
+box(L+0.01,L+0.34,-0.27,-0.10,-0.175,0.175,M.frame);
+box(L+0.01,L+0.02,-0.10,0.06,-0.175,0.175,M.frame);
+
+// spray pipe 1" + 3 U-brackets  (pipe at back side, z = -0.06)
+const ZP=ZT+0.15, PZ=-0.06;
+cylX(0.0167,0.48,L-0.04,ZP,PZ,M.ss);
+cylY(0.0167,ZP,ZP+0.11,L-0.04,PZ,M.ss); cylY(0.021,ZP+0.11,ZP+0.15,L-0.04,PZ,M.dark);
+for(const xb of [0.7,1.45,2.2]){
+  for(const s of [1,-1]){const a=s*(RI+0.02),b=s*(RI+0.026); box(xb-0.025,xb+0.025,ZT+0.004,ZP+0.04,Math.min(a,b),Math.max(a,b),M.ss2);}
+  box(xb-0.025,xb+0.025,ZP+0.034,ZP+0.04,-(RI+0.026),RI+0.026,M.ss2);
+  box(xb-0.02,xb+0.02,ZP+0.016,ZP+0.034,PZ-0.022,PZ+0.022,M.ss2);
+}
+
+// hopper
+const HX=0.23, HZ0=ZT+0.004, HZ1=HZ0+0.4;
+{const b=[[0.02,HZ0,-(RI+0.002)],[0.44,HZ0,-(RI+0.002)],[0.44,HZ0,RI+0.002],[0.02,HZ0,RI+0.002]];
+ const t=[[HX-0.3,HZ1,-0.3],[HX+0.3,HZ1,-0.3],[HX+0.3,HZ1,0.3],[HX-0.3,HZ1,0.3]];
+ const pos=[],idx=[]; for(let i=0;i<4;i++){const j=(i+1)%4,n=pos.length/3; pos.push(...b[i],...b[j],...t[j],...t[i]); idx.push(n,n+1,n+2,n,n+2,n+3);}
+ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); add(g,M.hopper);
+ for(const [a0,a1,b0,b1] of [[HX-0.33,HX+0.33,-0.33,-0.3],[HX-0.33,HX+0.33,0.3,0.33],[HX-0.33,HX-0.3,-0.3,0.3],[HX+0.3,HX+0.33,-0.3,0.3]]) box(a0,a1,HZ1-0.005,HZ1+0.005,b0,b1,M.hopper);}
+
+// outlet chute (assumed position) + collection bin on floor
+box(OUT_X0-0.005,OUT_X0,-0.45,-0.10,-0.11,0.11,M.ss2);
+box(OUT_X1,OUT_X1+0.005,-0.45,-0.10,-0.11,0.11,M.ss2);
+box(OUT_X0,OUT_X1,-0.45,-0.10,-0.115,-0.11,M.ss2);
+box(OUT_X0,OUT_X1,-0.45,-0.10,0.11,0.115,M.ss2);
+const bin=new THREE.Group(); bin.position.set((OUT_X0+OUT_X1)/2,0,0); scene.add(bin);
+{const w=0.55,d=0.45,h=0.32,t=0.008;
+ box(-w/2,w/2,0,t,-d/2,d/2,M.bin,bin); box(-w/2,w/2,0,h,-d/2,-d/2+t,M.bin,bin); box(-w/2,w/2,0,h,d/2-t,d/2,M.bin,bin);
+ box(-w/2,-w/2+t,0,h,-d/2,d/2,M.bin,bin); box(w/2-t,w/2,0,h,-d/2,d/2,M.bin,bin);}
+
+// frame: 4 legs + cross beams + base plates
+const topY={a:-RI-T-0.004, b:-0.27};
+for(const [xc,ty] of [[0.16,topY.a],[L+0.2,topY.b]]){
+  box(xc-0.05,xc+0.05,ty-0.1,ty,-0.26,0.26,M.frame);
+  for(const zc of [-0.21,0.21]){ box(xc-0.05,xc+0.05,-HA,ty-0.1,zc-0.025,zc+0.025,M.frame); box(xc-0.075,xc+0.075,-HA,-HA+0.01,zc-0.075,zc+0.075,M.frame); }
+}
+
+// ---------- particles ----------
+const dummy=new THREE.Object3D();
+const NF=700;
+const flakeGeo=new THREE.BoxGeometry(0.016,0.004,0.012);
+const flakeMat=new THREE.MeshStandardMaterial({color:'#f2f2ee',roughness:0.6,metalness:0});
+const flakes=new THREE.InstancedMesh(flakeGeo,flakeMat,NF); flakes.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+const fcol=new THREE.Color(); for(let i=0;i<NF;i++){fcol.setHSL(0.1,0.05,0.82+Math.random()*0.15); flakes.setColorAt(i,fcol);}
+flakes.frustumCulled=false; scene.add(flakes);
+const F=[]; for(let i=0;i<NF;i++) F.push({st:0,x:0,y:-10,z:0,vy:0,a:0,r:0,rot:Math.random()*6,spin:(Math.random()-0.5)*8,t:0});
+
+const NW=500;
+const water=new THREE.InstancedMesh(new THREE.SphereGeometry(0.0045,8,6),new THREE.MeshStandardMaterial({color:'#3fa4e6',transparent:true,opacity:0.75,roughness:0.1,metalness:0}),NW);
+water.instanceMatrix.setUsage(THREE.DynamicDrawUsage); water.frustumCulled=false; scene.add(water);
+const W=[]; for(let i=0;i<NW;i++) W.push({on:false,x:0,y:-10,z:0,vx:0,vy:0,vz:0,passed:false});
+
+// ---------- state & UI ----------
+let running=false, rpm=56, feed=true, waterOn=true, phi=0;
+const $=id=>document.getElementById(id);
+function updRead(){
+  $('rpmVal').textContent=rpm+' rpm';
+  $('kAx').textContent=(P*rpm).toFixed(1)+' m/min';
+  const Q=60*Math.PI/4*(0.24*0.24-0.0603*0.0603)*P*rpm*0.3;
+  $('kQ').textContent=Q.toFixed(1)+' m³/jam';
+}
+function setRun(v){running=v; $('lamp').classList.toggle('run',v); $('status').textContent=v?'RUN':'STOP';}
+$('btnOn').onclick=()=>setRun(true); $('btnOff').onclick=()=>setRun(false);
+$('rpm').oninput=e=>{rpm=+e.target.value; updRead();};
+$('cFeed').onchange=e=>feed=e.target.checked;
+$('cWater').onchange=e=>waterOn=e.target.checked;
+$('cGlass').onchange=e=>{const g=e.target.checked; M.body.transparent=g; M.body.opacity=g?0.28:1; M.body.depthWrite=!g; M.body.needsUpdate=true;};
+$('cLbl').onchange=e=>labelsEl.style.display=e.target.checked?'block':'none';
+updRead(); setRun(true);
+
+// views
+const VIEWS={
+  iso:{p:[-1.7,3.0,3.7],t:[1.35,1.25,0]},
+  front:{p:[1.35,1.5,5.2],t:[1.35,1.15,0]},
+  top:{p:[1.35,5.6,0.7],t:[1.35,1.4,0]},
+  inlet:{p:[-0.55,2.55,1.25],t:[0.3,1.68,0]},
+  drive:{p:[3.75,2.35,1.55],t:[2.55,1.55,0]},
+};
+let camAnim=null;
+function fitPos(v){const t=new THREE.Vector3(...v.t), p=new THREE.Vector3(...v.p); const a=innerWidth/innerHeight; const k=a<1?Math.min(2.2,0.95/a):1; return t.clone().add(p.sub(t).multiplyScalar(k));}
+function goView(k){const v=VIEWS[k]; camAnim={p0:camera.position.clone(),t0:controls.target.clone(),p1:fitPos(v),t1:new THREE.Vector3(...v.t),u:0};}
+function applyOffset(){ if(innerWidth>=760){camera.setViewOffset(innerWidth,innerHeight,-150,0,innerWidth,innerHeight);} else camera.clearViewOffset(); camera.updateProjectionMatrix(); }
+document.querySelectorAll('.views button').forEach(b=>b.onclick=()=>goView(b.dataset.v));
+camera.position.copy(fitPos(VIEWS.iso)); controls.target.set(...VIEWS.iso.t); applyOffset(); controls.update();
+if(innerWidth<560){ $('panel').open=false; }
+
+// labels
+const labelsEl=$('labels');
+const LBL=[
+  ['Hopper inlet',[HX,HA+HZ1+0.05,0]],
+  ['Motor 2,2 kW',[XC_GB,HA+0.6,0]],
+  ['Gearbox NMRV090',[XC_GB,HA-0.0,0.14]],
+  ['Pipa kucuran 1"',[1.2,HA+ZP+0.05,PZ]],
+  ['Body perforated Ø8',[1.5,HA-0.135,0.13]],
+  ['Outlet (asumsi)',[(OUT_X0+OUT_X1)/2,HA-0.47,0.12]],
+  ['Bearing UCF210',[-0.06,HA+0.09,0]],
+].map(([t,p])=>{const d=document.createElement('div'); d.className='lbl'; d.textContent=t; labelsEl.appendChild(d); return {d,v:new THREE.Vector3(...p)};});
+const tmp=new THREE.Vector3();
+function placeLabels(){for(const l of LBL){tmp.copy(l.v).project(camera); const vis=tmp.z<1&&Math.abs(tmp.x)<1.1&&Math.abs(tmp.y)<1.1; l.d.style.display=vis?'block':'none'; if(vis){l.d.style.left=((tmp.x+1)/2*innerWidth)+'px'; l.d.style.top=((1-tmp.y)/2*innerHeight)+'px';}}}
+
+// ---------- simulation ----------
+let spawnAcc=0, wAcc=0;
+const G=9.81;
+function bedPos(f){ // cross-section position inside trough (rides up toward +z with rotation)
+  const y=Math.cos(f.a)*f.r, z=Math.sin(f.a)*f.r; return [y,z]; }
+function step(dt){
+  const omega=running? rpm/60*Math.PI*2 : 0;
+  phi-=omega*dt; screw.rotation.x=phi;
+  const vAx=running? P*rpm/60*0.55 : 0;
+
+  // spawn flakes into hopper
+  if(running&&feed){ spawnAcc+=dt*40*rpm/56; while(spawnAcc>1){spawnAcc--; const f=F.find(q=>q.st===0); if(!f)break;
+    f.st=1; f.x=0.07+Math.random()*0.33; f.z=(Math.random()-0.5)*0.22; f.y=HA+HZ1+0.15+Math.random()*0.2; f.vy=0;
+    f.a=Math.PI-0.9+Math.random()*1.15; f.r=0.05+Math.random()*0.07; } }
+
+  for(let i=0;i<NF;i++){const f=F[i];
+    if(f.st===1){ f.vy-=G*dt; f.y+=f.vy*dt; const [by,bz]=bedPos(f); f.z+= (bz-f.z)*Math.min(1,dt*3);
+      if(f.y<=HA+by){f.st=2;} }
+    else if(f.st===2){ f.x+=vAx*dt*(0.85+0.3*Math.sin(i)); if(running){f.a+=(Math.random()-0.5)*dt*1.5; f.a=Math.min(Math.PI+0.35,Math.max(Math.PI-1.0,f.a));}
+      const [by,bz]=bedPos(f); f.y=HA+by; f.z=bz;
+      if(f.x>OUT_X0+0.02+ (i%7)*0.02 && f.x<OUT_X1){f.st=3; f.vy=0;} if(f.x>OUT_X1-0.01){f.x=OUT_X1-0.02; f.st=3; f.vy=0;} }
+    else if(f.st===3){ f.vy-=G*dt; f.y+=f.vy*dt; f.z*=0.98; const rest=0.02+(i%9)*0.012;
+      if(f.y<=rest){f.y=rest; f.st=4; f.t=8+Math.random()*4; f.x=bin.position.x+(Math.random()-0.5)*0.48; f.z=(Math.random()-0.5)*0.38;} }
+    else if(f.st===4){ f.t-=dt; if(f.t<=0){f.st=0; f.y=-10;} }
+    if(f.st!==4&&f.st!==0&&running) f.rot+=f.spin*dt;
+    dummy.position.set(f.x,f.y,f.z); dummy.rotation.set(f.rot,f.rot*0.7,f.rot*0.3); dummy.scale.setScalar(f.st===0?0.0001:1); dummy.updateMatrix(); flakes.setMatrixAt(i,dummy.matrix);
+  }
+  flakes.instanceMatrix.needsUpdate=true;
+
+  // water from spray pipe, through perforated body to floor
+  if(waterOn){ wAcc+=dt*260; while(wAcc>1){wAcc--; const w=W.find(q=>!q.on); if(!w)break;
+    w.on=true; w.passed=false; w.x=0.5+Math.random()*1.94; w.y=HA+ZP-0.017; w.z=PZ; w.vx=0; w.vy=-0.2; w.vz=0.15+Math.random()*0.35; } }
+  for(let i=0;i<NW;i++){const w=W[i];
+    if(w.on){ w.vy-=G*dt; w.x+=w.vx*dt; w.y+=w.vy*dt; w.z+=w.vz*dt;
+      const zz=Math.max(-RI,Math.min(RI,w.z)); const bottom=HA-Math.sqrt(Math.max(0,RI*RI-zz*zz));
+      if(!w.passed && w.y<=bottom){ w.passed=true; w.vy=-0.4; w.vz*=0.2; }
+      if(w.y<=0.005){ w.on=false; } }
+    dummy.position.set(w.x,w.on?w.y:-10,w.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,w.on?1.8:0.0001,1); dummy.updateMatrix(); water.setMatrixAt(i,dummy.matrix);
+  }
+  water.instanceMatrix.needsUpdate=true;
+}
+
+// ---------- loop ----------
+const clock=new THREE.Clock();
+function loop(){
+  const dt=Math.min(clock.getDelta(),0.05);
+  if(camAnim){camAnim.u=Math.min(1,camAnim.u+dt*1.6); const e=1-Math.pow(1-camAnim.u,3);
+    camera.position.lerpVectors(camAnim.p0,camAnim.p1,e); controls.target.lerpVectors(camAnim.t0,camAnim.t1,e); if(camAnim.u>=1)camAnim=null;}
+  step(dt); controls.update(); renderer.render(scene,camera); placeLabels(); requestAnimationFrame(loop);
+}
+loop();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight; applyOffset(); renderer.setSize(innerWidth,innerHeight);});
+</script>
+</body>
+</html>
