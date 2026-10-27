@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Henschel FM500 Washing UPVC</title>
+<style>
+:root{--panel:rgba(14,22,32,.88);--line:#2b3d50;--txt:#e8eef4;--mut:#9fb2c4;--blue:#22b8e6;--red:#e5262a;--grn:#8cc63f;--yel:#f2c200}
+html,body{margin:0;height:100%;overflow:hidden;background:#e9eef1;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:var(--txt)}
+#c{position:fixed;inset:0}
+.panel{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;backdrop-filter:blur(4px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
+#left{top:12px;left:12px;width:330px;max-height:calc(100% - 90px);overflow:auto}
+#right{top:12px;right:12px;width:340px;max-height:calc(100% - 90px);overflow:auto;font-size:12.5px;display:none}
+#right.show{display:block}
+.logo{font-weight:800;letter-spacing:.5px;font-size:15px}
+.logo .g{color:var(--blue)}.logo .i{color:var(--red)}.logo .s{color:var(--grn)}
+h1{font-size:15px;margin:6px 0 2px}
+.sub{color:var(--mut);font-size:12px;margin-bottom:8px}
+ol{margin:6px 0 10px;padding-left:0;list-style:none}
+ol li{font-size:12.5px;padding:6px 8px;border-radius:6px;margin-bottom:3px;border-left:3px solid transparent;color:var(--mut)}
+ol li b{color:var(--txt);font-weight:600}
+ol li.on{background:rgba(34,184,230,.16);border-left-color:var(--blue);color:var(--txt)}
+.grid{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:12.5px}
+.grid span:nth-child(odd){color:var(--mut)}
+.grid span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.bar{height:6px;background:#22303f;border-radius:4px;overflow:hidden;margin:8px 0 2px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--grn))}
+table{width:100%;border-collapse:collapse;margin:6px 0}
+td{padding:4px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{color:var(--mut);width:42%}
+h2{font-size:13.5px;margin:4px 0 6px;color:var(--yel)}
+.note{color:var(--mut);font-size:11.5px;line-height:1.45}
+.ok{color:var(--grn);font-weight:600}
+#tools{bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:8px 10px}
+button{background:#1b2a3a;color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:7px 11px;font-size:12.5px;cursor:pointer}
+button:hover{border-color:var(--blue)}
+button.act{background:var(--blue);color:#06202b;border-color:var(--blue);font-weight:600}
+#labels{position:fixed;inset:0;pointer-events:none}
+.lb{position:absolute;transform:translate(-50%,-100%);white-space:nowrap;font-size:11px;background:rgba(14,22,32,.82);color:#fff;padding:3px 7px;border-radius:5px;border-left:3px solid var(--red)}
+.lb.new{border-left-color:var(--grn)}
+.lb::after{content:"";position:absolute;left:50%;bottom:-5px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:#fff}
+@media (max-width:860px){#left{width:calc(100% - 48px);max-height:38%}#right{top:auto;bottom:70px;width:calc(100% - 48px);max-height:45%}.lb{font-size:9.5px}}
+</style>
+</head>
+<body>
+<div id="c"></div>
+<div id="labels"></div>
+
+<div id="left" class="panel">
+  <div class="logo"><span class="g">GLOBAL</span> <span class="i">INTI</span> <span class="s">SINERGI</span></div>
+  <h1>Konsep Modifikasi Henschel FM500 → Washing Flake UPVC</h1>
+  <div class="sub">Friction washer batch · flake ±5 mm · target 500 kg/shift</div>
+  <ol id="steps">
+    <li data-k="0"><b>1. Isi air 200 L</b> dari nozzle bawah, impeller start 60 rpm (±2 mnt)</li>
+    <li data-k="1"><b>2. Feeding flake 60 kg</b> via screw loader dari crusher (±3 mnt)</li>
+    <li data-k="2"><b>3. Friction wash</b> 160 rpm, debu lepas dari flake (8–10 mnt)</li>
+    <li data-k="3"><b>4. Discharge slurry</b> → vibrating screen + rinse spray (±3 mnt)</li>
+    <li data-k="4"><b>5. Spin dryer</b> → jumbo bag flake bersih (kontinu)</li>
+  </ol>
+  <div class="grid">
+    <span>Fase</span><span id="vPh">-</span>
+    <span>Putaran impeller</span><span id="vRpm">0 rpm</span>
+    <span>Tip speed (Ø 920)</span><span id="vTip">0 m/s</span>
+    <span>Estimasi daya poros</span><span id="vKw">0 kW</span>
+    <span>Air di bowl</span><span id="vL">0 L</span>
+    <span>Batch ke-</span><span id="vB">1</span>
+    <span>Flake bersih di jumbo bag</span><span id="vKg">0 kg</span>
+  </div>
+  <div class="bar"><i id="vProg"></i></div>
+  <div class="note">Siklus nyata ±20 mnt/batch → 3 batch/jam ≈ 180 kg/jam. Animasi dipercepat. Ukuran flake digambar diperbesar agar terlihat.</div>
+</div>
+
+<div id="right" class="panel">
+  <h2>Cek kecocokan Henschel FM500</h2>
+  <table>
+    <tr><td>Volume bowl</td><td>500 L total, working ±330–350 L (data umum FM500)</td></tr>
+    <tr><td>Bowl (estimasi)</td><td>ID ±900–1.000 mm, tinggi ±650–750 mm, SS, umumnya ber-jacket</td></tr>
+    <tr><td>Dimensi bodi umum</td><td>±2,9 m × 1,0 m × tinggi ±3,1 m (termasuk motor/lid)</td></tr>
+    <tr><td>Motor asli</td><td>±45–75 kW, 2-speed (bervariasi per unit)</td></tr>
+    <tr><td>Foto lapangan</td><td>Base ±2 m, bowl setinggi bahu orang, lebar bodi ±1,1 m → <span class="ok">konsisten FM500</span></td></tr>
+  </table>
+  <h2>Operasi basah (konsep)</h2>
+  <table>
+    <tr><td>Putaran kerja</td><td>120–180 rpm (dikunci VFD), tip speed ±6–9 m/s</td></tr>
+    <tr><td>Daya poros</td><td>±4–15 kW (P ∝ N³), estimasi Np 0,7</td></tr>
+    <tr><td>Motor baru</td><td>AC IE3 37 kW 4P + VFD (margin torsi start)</td></tr>
+    <tr><td>Batch</td><td>60 kg flake + 200 L air ≈ 245 L (&lt;75% working)</td></tr>
+    <tr><td>Kapasitas</td><td>±180 kg/jam → 500 kg tercapai ±3 jam</td></tr>
+    <tr><td>Footprint layout</td><td>±7,6 × 3,8 m (cek area client)</td></tr>
+  </table>
+  <h2>Item modifikasi</h2>
+  <div class="note">
+  • Ganti motor DC Baumüller → AC + VFD, rasio pulley baru<br>
+  • Konversi seal poros → mechanical seal + water flush, overhaul bearing<br>
+  • Discharge valve dibuat kedap air (pneumatik eks dicek)<br>
+  • Nozzle air bawah, splash cover pengganti vent filter, gasket lid<br>
+  • Interlock: impeller jalan sebelum flake masuk (PVC tenggelam, cegah torsi start berat)<br>
+  • Drip shield &amp; tray di atas area motor/belt<br><br>
+  <b>Catatan:</b> data FM500 dari spesifikasi unit bekas umum; wajib verifikasi nameplate + ukur ID bowl, tinggi, diameter impeller dan ukuran discharge valve di lokasi.
+  </div>
+</div>
+
+<div id="tools" class="panel">
+  <button id="bPlay" class="act">⏸ Pause</button>
+  <button id="bSpd">Kecepatan 1×</button>
+  <button id="bBowl" class="act">Bowl transparan</button>
+  <button id="bLbl" class="act">Label</button>
+  <button id="vIso">Iso</button>
+  <button id="vTop">Atas</button>
+  <button id="vFront">Depan</button>
+  <button id="bData">Data FM500</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+
+// ---------- renderer / scene ----------
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+document.getElementById('c').appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xe9eef1);
+scene.fog=new THREE.Fog(0xe9eef1,20,45);
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.05,120);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.495;controls.minDistance=1.5;controls.maxDistance=25;
+function view(p,t){camera.position.copy(p);controls.target.copy(t);controls.update();}
+const VIEWS={iso:[V(1.6,6.2,9.6),V(-2.3,0.6,0)],top:[V(-1.6,12,0.01),V(-1.6,0,0)],front:[V(-1.6,1.3,8.8),V(-1.6,1.0,0)]};
+view(...VIEWS.iso);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x6f8a78,0.75));
+const sun=new THREE.DirectionalLight(0xffffff,0.85);
+sun.position.set(5,10,6);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9,near:1,far:30});
+scene.add(sun);
+
+// ---------- materials ----------
+const std=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.6,metalness:.2},o));
+const M={
+  green:std(0x5f8f66,{roughness:.8}),
+  greenDk:std(0x2f4f36,{roughness:.9}),
+  ssT:std(0xc8d2d8,{metalness:.75,roughness:.28,transparent:true,opacity:.32,side:THREE.DoubleSide,depthWrite:false}),
+  ss:std(0xb9c4cb,{metalness:.75,roughness:.3}),
+  lidT:std(0xc8d2d8,{metalness:.7,roughness:.3,transparent:true,opacity:.45,side:THREE.DoubleSide,depthWrite:false}),
+  motor:std(0x1f5fa8,{roughness:.45}),
+  frame:std(0x26449a,{roughness:.5}),
+  yel:std(0xf2c200,{roughness:.5}),
+  water:std(0x3fa9f5,{transparent:true,opacity:.45,roughness:.1,metalness:0,depthWrite:false}),
+  tank:std(0x3d7ec9,{roughness:.55}),
+  pipe:std(0x9aa7b0,{metalness:.6,roughness:.35}),
+  pipeW:std(0x2c86d8,{metalness:.3,roughness:.4}),
+  grey:std(0x8e989e,{roughness:.8}),
+  wood:std(0x9a6b3c,{roughness:.9}),
+  panel:std(0xdadfe2,{roughness:.5}),
+  dark:std(0x1a2128,{roughness:.6}),
+  bag:std(0xf4f4f0,{roughness:.95,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}),
+  flakePile:std(0xdfe5df,{roughness:.95}),
+  murky:std(0x8a9a8f,{transparent:true,opacity:.75,roughness:.2,metalness:0})
+};
+function sh(o){o.castShadow=true;o.receiveShadow=true;return o;}
+function box(w,h,d,m,x,y,z,p=scene){const o=sh(new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m));o.position.set(x,y,z);p.add(o);return o;}
+function cyl(rt,rb,h,m,x,y,z,p=scene,seg=40,open=false){const o=sh(new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg,1,open),m));o.position.set(x,y,z);p.add(o);return o;}
+function rod(a,b,r,m,p=scene){const d=b.clone().sub(a);const o=sh(new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),14),m));o.position.copy(a).add(b).multiplyScalar(.5);o.quaternion.setFromUnitVectors(V(0,1,0),d.normalize());p.add(o);return o;}
+function pipe(pts,r,m,p=scene){const g=new THREE.Group();for(let i=0;i<pts.length-1;i++)rod(pts[i],pts[i+1],r,m,g);for(let i=1;i<pts.length-1;i++){const s=sh(new THREE.Mesh(new THREE.SphereGeometry(r*1.05,12,10),m));s.position.copy(pts[i]);g.add(s);}p.add(g);return g;}
+
+// ---------- floor ----------
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(22,14),std(0x4f8a66,{roughness:.45,metalness:.05}));
+floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+const lineM=new THREE.MeshBasicMaterial({color:0xf5f5f0});
+[[-1.6,2.3,13,0.06],[-1.6,-2.3,13,0.06]].forEach(a=>{const l=new THREE.Mesh(new THREE.PlaneGeometry(a[2],a[3]),lineM);l.rotation.x=-Math.PI/2;l.position.set(a[0],0.002,a[1]);scene.add(l);});
+
+// ================= HENSCHEL FM500 (modified) =================
+const H=new THREE.Group();scene.add(H);
+// wooden blocks + cast base
+[[-0.55,-0.45],[-0.55,0.45],[1.25,-0.45],[1.25,0.45]].forEach(p=>box(0.22,0.08,0.2,M.wood,p[0],0.04,p[1],H));
+box(2.0,0.62,1.1,M.green,0.35,0.39,0,H);
+[[-0.3,0.25],[0.9,0.25],[0.3,0.28]].forEach(p=>{const h=cyl(0.055,0.055,0.02,M.dark,p[0],p[1],0.551,H,20);h.rotation.x=Math.PI/2;});
+box(0.32,0.2,0.04,M.greenDk,1.05,0.42,0.56,H); // louvre panel
+for(let i=0;i<4;i++)box(0.26,0.015,0.01,M.dark,1.05,0.35+i*0.045,0.585,H);
+// bearing housing
+cyl(0.22,0.28,0.08,M.green,0,0.74,0,H);
+const sealRing=cyl(0.13,0.13,0.05,std(0x8cc63f,{emissive:0x2a4a10}),0,0.785,0,H,30); // new mechanical seal (marker)
+// bowl
+const bowl=cyl(0.56,0.56,0.72,M.ssT,0,1.14,0,H,56,true);
+const bowlIn=cyl(0.48,0.48,0.71,M.ssT,0,1.14,0,H,56,true);
+const bowlBot=cyl(0.56,0.56,0.02,M.ss,0,0.79,0,H,56);
+const bowlRim=cyl(0.6,0.6,0.04,M.ss,0,1.5,0,H,56);
+// lid
+const lid=cyl(0.6,0.6,0.05,M.lidT,0,1.545,0,H,56);
+const lidHub=cyl(0.14,0.14,0.08,M.ss,0,1.6,0,H,24);
+cyl(0.09,0.09,0.12,M.ss,0.25,1.63,0.25,H,24); // feed inlet
+box(0.22,0.12,0.2,M.yel,-0.25,1.63,-0.2,H); // splash cover (new)
+const defl=box(0.05,0.36,0.12,M.ss,0.33,1.3,-0.18,H);defl.rotation.y=0.6; // deflector
+// impeller (existing 2-tier)
+const imp=new THREE.Group();H.add(imp);
+cyl(0.075,0.075,0.2,M.ss,0,0.9,0,imp,20);
+const b1=box(0.92,0.02,0.1,M.ss,0,0.83,0,imp);b1.rotation.x=0.18;
+const b2=box(0.86,0.02,0.08,M.ss,0,0.97,0,imp);b2.rotation.y=Math.PI/2;b2.rotation.z=0.22;
+// water in bowl
+const water=new THREE.Mesh(new THREE.CylinderGeometry(0.475,0.475,1,48),M.water.clone());
+water.geometry.translate(0,0.5,0);water.position.set(0,0.8,0);water.renderOrder=2;H.add(water);
+// new AC motor + belt guard
+box(0.36,0.05,0.4,M.frame,1.0,0.725,0,H);
+const mot=cyl(0.2,0.2,0.52,M.motor,1.0,1.01,0,H,32);
+cyl(0.18,0.18,0.07,M.motor,1.0,1.3,0,H,32);
+box(0.14,0.12,0.12,M.motor,1.0,1.0,0.22,H);
+box(0.95,0.08,0.38,M.yel,0.66,0.74,0,H);
+// discharge valve (pneumatic) toward -X
+box(0.24,0.2,0.26,M.ss,-0.68,0.89,0,H);
+const gate=box(0.03,0.18,0.24,M.yel,-0.79,0.89,0,H);
+const pcyl=cyl(0.04,0.04,0.32,M.pipe,-0.79,0.89,0.3,H,16);pcyl.rotation.x=Math.PI/2;
+// chute to screen
+const ch=box(0.68,0.02,0.32,M.ss,-1.1,0.82,0,H);ch.rotation.z=0.07;
+box(0.68,0.08,0.015,M.ss,-1.1,0.86,0.16,H).rotation.z=0.07;
+box(0.68,0.08,0.015,M.ss,-1.1,0.86,-0.16,H).rotation.z=0.07;
+
+// ================= WATER SUPPLY =================
+cyl(0.5,0.5,1.3,M.tank,-0.9,0.65,-1.45,scene,40);
+cyl(0.18,0.18,0.06,M.tank,-0.9,1.33,-1.45,scene,24);
+for(let i=1;i<5;i++)cyl(0.505,0.505,0.03,std(0x2f6aab),-0.9,i*0.26,-1.45,scene,40);
+const pump=new THREE.Group();scene.add(pump);
+box(0.36,0.06,0.24,M.frame,0.15,0.03,-1.3,pump);
+cyl(0.09,0.09,0.24,M.motor,0.06,0.15,-1.3,pump,20).rotation.z=Math.PI/2;
+cyl(0.11,0.11,0.1,M.ss,0.24,0.15,-1.3,pump,20).rotation.z=Math.PI/2;
+const inletPipe=pipe([V(-0.42,0.12,-1.45),V(0.3,0.12,-1.45),V(0.3,0.12,-1.3)],0.028,M.pipeW.clone());
+const fillPipe=pipe([V(0.3,0.2,-1.3),V(0.3,0.84,-1.3),V(0.3,0.84,-0.5)],0.028,M.pipeW.clone());
+// rinse line + spray bars
+pipe([V(-1.38,1.0,-1.45),V(-2.75,1.0,-1.45),V(-2.75,1.18,-1.45),V(-2.75,1.18,-0.42)],0.022,M.pipeW);
+rod(V(-2.4,1.18,-0.42),V(-3.12,1.18,-0.42),0.022,M.pipeW);
+[-2.45,-3.05].forEach(x=>{rod(V(x,1.18,-0.42),V(x,1.18,0.36),0.018,M.pipe);for(let z=-0.3;z<=0.3;z+=0.15)cyl(0.012,0.02,0.04,M.dark,x,1.15,z,scene,10);});
+// recirculation
+const rp=new THREE.Group();scene.add(rp);
+box(0.3,0.05,0.2,M.frame,-1.12,0.025,-0.82,rp);
+cyl(0.075,0.075,0.2,M.motor,-1.18,0.12,-0.82,rp,20).rotation.z=Math.PI/2;
+pipe([V(-1.6,0.32,-0.42),V(-1.6,0.32,-0.82),V(-1.25,0.32,-0.82)],0.022,M.pipe);
+pipe([V(-1.0,0.15,-0.82),V(-1.0,0.45,-0.82),V(-1.0,0.45,-1.02)],0.022,M.pipe);
+
+// ================= FEED: hopper + screw loader =================
+[[1.62,1.02],[2.18,1.02],[1.62,1.58],[2.18,1.58]].forEach(p=>box(0.05,0.62,0.05,M.frame,p[0],0.31,p[1]));
+const hop=sh(new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.08,0.45,4,1,true),M.ss));
+hop.rotation.y=Math.PI/4;hop.position.set(1.9,0.82,1.3);hop.material=M.ss.clone();hop.material.side=THREE.DoubleSide;scene.add(hop);
+box(0.62,0.03,0.62,M.frame,1.9,1.05,1.3).visible=false;
+const screw=rod(V(1.9,0.45,1.3),V(0.3,1.98,0.3),0.08,M.ss.clone());
+rod(V(0.3,1.98,0.3),V(0.25,1.68,0.25),0.06,M.ss);
+cyl(0.09,0.09,0.2,M.motor,0.22,2.05,0.22,scene,20).rotation.z=0.9;
+rod(V(1.35,0,0.95),V(1.35,0.95,0.95),0.03,M.frame);rod(V(0.75,0,0.6),V(0.75,1.55,0.6),0.03,M.frame);
+
+// ================= DEWATERING VIBRATING SCREEN =================
+// settling tank
+const tankM=std(0x9aa3a8,{roughness:.8,transparent:true,opacity:.6,side:THREE.DoubleSide,depthWrite:false});
+const st=new THREE.Group();scene.add(st);
+box(2.2,0.45,0.02,tankM,-2.4,0.225,0.42,st);box(2.2,0.45,0.02,tankM,-2.4,0.225,-0.42,st);
+box(0.02,0.45,0.84,tankM,-1.3,0.225,0,st);box(0.02,0.45,0.84,tankM,-3.5,0.225,0,st);
+box(2.2,0.02,0.84,M.grey,-2.4,0.01,0,st);
+[-2.05,-2.75].forEach(x=>box(0.02,0.36,0.84,M.grey,x,0.18,0,st));
+const sw=box(2.18,0.01,0.82,M.murky.clone(),-2.4,0.38,0,st);
+// legs
+[[-1.32,0.47],[-1.32,-0.47],[-3.48,0.47],[-3.48,-0.47]].forEach(p=>box(0.05,0.74,0.05,M.frame,p[0],0.37,p[1]));
+// deck (vibrating)
+const scr=new THREE.Group();scene.add(scr);
+const cv=document.createElement('canvas');cv.width=cv.height=64;const cx=cv.getContext('2d');
+cx.fillStyle='#c4ccd1';cx.fillRect(0,0,64,64);cx.fillStyle='#3a4248';
+for(let y=8;y<64;y+=16)for(let x=8;x<64;x+=16){cx.beginPath();cx.arc(x,y,4,0,7);cx.fill();}
+const tex=new THREE.CanvasTexture(cv);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(26,8);
+const deck=box(2.12,0.02,0.62,std(0xffffff,{map:tex,metalness:.6,roughness:.35}),-2.4,0.74,0,scr);deck.rotation.z=0.02;
+box(2.12,0.13,0.02,M.ss,-2.4,0.8,0.32,scr).rotation.z=0.02;
+box(2.12,0.13,0.02,M.ss,-2.4,0.8,-0.32,scr).rotation.z=0.02;
+box(2.14,0.04,0.7,M.frame,-2.4,0.69,0,scr);
+[0.37,-0.37].forEach(z=>{const v=cyl(0.07,0.07,0.2,M.motor,-2.4,0.8,z,scr,20);v.rotation.x=Math.PI/2;});
+// screen to dryer chute
+const ch2=box(0.42,0.02,0.3,M.ss,-3.66,0.66,0);ch2.rotation.z=0.45;
+
+// ================= SPIN DRYER =================
+box(0.8,0.35,0.8,M.frame,-4.25,0.175,0);
+const dryHouse=cyl(0.34,0.34,1.5,std(0xc8d2d8,{metalness:.7,roughness:.3,transparent:true,opacity:.35,side:THREE.DoubleSide,depthWrite:false}),-4.25,1.1,0,scene,40,true);
+cyl(0.36,0.36,0.04,M.ss,-4.25,1.86,0);cyl(0.36,0.36,0.04,M.ss,-4.25,0.36,0);
+const fn=sh(new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.07,0.2,20,1,true),M.ss));fn.material=M.ss.clone();fn.material.side=THREE.DoubleSide;fn.position.set(-3.9,0.6,0);scene.add(fn);
+const rotor=new THREE.Group();rotor.position.set(-4.25,0,0);scene.add(rotor);
+cyl(0.06,0.06,1.45,M.ss,0,1.1,0,rotor,16);
+for(let k=0;k<14;k++){const a=k*1.0,y=0.5+k*0.085;const p=box(0.24,0.012,0.07,M.ss,Math.cos(a)*0.15,y,Math.sin(a)*0.15,rotor);p.rotation.y=-a;p.rotation.x=0.35;}
+cyl(0.16,0.16,0.34,M.motor,-4.25,2.05,0,scene,24);
+const ch3=box(0.5,0.02,0.28,M.ss,-4.75,1.5,0);ch3.rotation.z=-0.9;
+
+// ================= JUMBO BAG =================
+box(1.0,0.12,1.0,M.wood,-5.1,0.06,0);
+box(0.88,1.0,0.88,M.bag,-5.1,0.62,0);
+[[0.4,0.4],[0.4,-0.4],[-0.4,0.4],[-0.4,-0.4]].forEach(p=>{const t=new THREE.Mesh(new THREE.TorusGeometry(0.06,0.012,8,16),std(0xffffff));t.position.set(-5.1+p[0],1.16,p[1]);scene.add(t);});
+const pile=new THREE.Mesh(new THREE.BoxGeometry(0.84,1,0.84),M.flakePile);pile.geometry.translate(0,0.5,0);pile.position.set(-5.1,0.125,0);pile.scale.y=0.001;scene.add(pile);
+
+// ================= CONTROL PANEL =================
+box(0.8,1.9,0.4,M.panel,2.05,0.95,-0.95);
+const hmi=box(0.34,0.24,0.02,std(0x0b1a26,{emissive:0x0e4a6a,emissiveIntensity:.7}),2.05,1.35,-0.74);
+[0x2ecc40,0xf2c200,0xe5262a].forEach((c,i)=>cyl(0.04,0.04,0.07,std(c,{emissive:c,emissiveIntensity:.25}),2.25,2.0+i*0.075,-0.95,scene,16));
+const lampG=scene.children[scene.children.length-3];
+pipe([V(1.65,1.6,-0.95),V(1.25,1.6,-0.95),V(1.25,1.6,-0.3),V(1.15,1.2,-0.1)],0.025,M.dark);
+
+// ================= FLAKE PARTICLES =================
+const N=520;
+const flakeGeo=new THREE.BoxGeometry(0.03,0.012,0.024);
+const flakes=new THREE.InstancedMesh(flakeGeo,std(0xe9eee9,{roughness:.9}),N);
+flakes.castShadow=true;scene.add(flakes);
+const dummy=new THREE.Object3D();
+function mkPath(pts){const L=[0];for(let i=1;i<pts.length;i++)L.push(L[i-1]+pts[i].distanceTo(pts[i-1]));return{pts,L,T:L[L.length-1]};}
+function at(p,q,out){const d=q*p.T;let i=1;while(i<p.L.length-1&&p.L[i]<d)i++;const a=p.L[i-1],b=p.L[i];return out.copy(p.pts[i-1]).lerp(p.pts[i],b>a?clamp((d-a)/(b-a)):0);}
+const DUR={fill:6,feed:7,wash:10,flow:17};
+const T_FILL=DUR.fill,T_FEED=T_FILL+DUR.feed,T_WASH=T_FEED+DUR.wash,T_END=T_WASH+DUR.flow;
+const P=[];
+let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;};
+function washPos(p,t,out){const ang=p.a+p.w*t;const r=p.r+0.03*Math.sin(t*3+p.a*5);return out.set(Math.cos(ang)*r,0.83+p.h*0.2+(p.r-0.1)*0.22+0.03*Math.sin(t*4+p.a*3),Math.sin(ang)*r);}
+for(let i=0;i<N;i++){
+  const p={d:rnd(),a:rnd()*Math.PI*2,r:0.1+rnd()*0.34,h:rnd(),w:3.2+2.4*rnd(),rx:rnd()*6,ry:rnd()*6,rz:rnd()*6,s:2+rnd()*6,bx:(rnd()-.5)*0.66,bz:(rnd()-.5)*0.66};
+  p.heap=V(1.9+(rnd()-.5)*0.38,0.66+rnd()*0.3,1.3+(rnd()-.5)*0.38);
+  p.rest=V(Math.cos(p.a)*p.r,0.81+p.h*0.05,Math.sin(p.a)*p.r);
+  p.feed=mkPath([p.heap,V(1.9,0.5,1.3),V(0.3,1.98,0.3),V(0.25,1.62,0.25),V(0.25,1.15,0.25),p.rest]);
+  p.dep=p.d*0.55;
+  const p0=washPos(p,DUR.wash,V(0,0,0));const extra=p.dep*DUR.flow*0.35;const ang=p.a+p.w*DUR.wash+extra;
+  p0.set(Math.cos(ang)*p.r,0.82+p.h*0.05,Math.sin(ang)*p.r);
+  const zs=(rnd()-.5)*0.4,zs2=(rnd()-.5)*0.46;
+  const pts=[p0,V(-0.45,0.84,0),V(-0.8,0.86,zs*0.4),V(-1.4,0.81,zs),V(-2.4,0.79,zs2),V(-3.42,0.77,zs2*0.8),V(-3.85,0.62,0),V(-4.03,0.48,0)];
+  for(let k=0;k<14;k++){const a=k*1.0+rnd()*0.3;pts.push(V(-4.25+Math.cos(a)*0.22,0.5+k*0.088,Math.sin(a)*0.22));}
+  pts.push(V(-4.55,1.72,0),V(-4.95,1.28,0),V(-5.1+p.bx,0.5,p.bz));
+  p.flow=mkPath(pts);
+  P.push(p);
+}
+// spray drops
+const ND=160;const drops=new THREE.InstancedMesh(new THREE.SphereGeometry(0.007,6,5),new THREE.MeshBasicMaterial({color:0x6fc3ff}),ND);scene.add(drops);
+const DP=[];for(let i=0;i<ND;i++)DP.push({x:(i%2?-2.45:-3.05)+(rnd()-.5)*0.08,z:-0.32+rnd()*0.64,o:rnd()});
+
+// ================= LABELS =================
+const LBL=[
+ ['Henschel FM500 eks',V(0,2.05,0),0],
+ ['Bowl SS 500 L',V(0.56,1.3,0.45),0],
+ ['Impeller eks 120–180 rpm',V(0.1,1.0,0.48),0],
+ ['Mechanical seal baru',V(0,0.8,0.5),1],
+ ['Motor AC 37 kW + VFD',V(1.0,1.42,0),1],
+ ['Discharge valve kedap air',V(-0.7,1.02,0.3),1],
+ ['Splash cover',V(-0.25,1.72,-0.2),1],
+ ['Screw loader',V(1.1,1.35,0.85),1],
+ ['Hopper flake crusher',V(1.9,1.15,1.3),1],
+ ['Nozzle air bawah',V(0.3,0.92,-0.75),1],
+ ['Tangki air 1 m³ + pompa',V(-0.9,1.45,-1.45),1],
+ ['Dewatering screen + rinse',V(-2.4,1.35,0),1],
+ ['Bak settling + resirkulasi',V(-2.4,0.48,0.5),1],
+ ['Spin dryer vertikal',V(-4.25,2.3,0),1],
+ ['Jumbo bag ±500 kg',V(-5.1,1.3,0.45),1],
+ ['Panel PLC/HMI/VFD',V(2.05,2.25,-0.95),1]
+];
+const lblBox=document.getElementById('labels');
+LBL.forEach(l=>{const d=document.createElement('div');d.className='lb'+(l[2]?' new':'');d.textContent=l[0];lblBox.appendChild(d);l.el=d;});
+let showLbl=true;
+
+// ================= UI =================
+let playing=true,spd=1,T=0,batch=1,bagBatches=0,lastUI=0,transp=true;
+const $=id=>document.getElementById(id);
+$('bPlay').onclick=()=>{playing=!playing;$('bPlay').textContent=playing?'⏸ Pause':'▶ Play';$('bPlay').classList.toggle('act',playing);};
+const SP=[1,2,4,0.5];let si=0;$('bSpd').onclick=()=>{si=(si+1)%SP.length;spd=SP[si];$('bSpd').textContent='Kecepatan '+spd+'×';};
+$('bBowl').onclick=()=>{transp=!transp;[M.ssT,M.lidT].forEach(m=>{m.opacity=transp?(m===M.lidT?.45:.32):1;m.depthWrite=!transp;m.needsUpdate=true;});$('bBowl').classList.toggle('act',transp);};
+$('bLbl').onclick=()=>{showLbl=!showLbl;lblBox.style.display=showLbl?'':'none';$('bLbl').classList.toggle('act',showLbl);};
+$('vIso').onclick=()=>view(...VIEWS.iso);$('vTop').onclick=()=>view(...VIEWS.top);$('vFront').onclick=()=>view(...VIEWS.front);
+$('bData').onclick=()=>{$('right').classList.toggle('show');};
+const steps=[...document.querySelectorAll('#steps li')];
+const PHN=['Isi air','Feeding flake','Friction wash','Discharge + rinse','Spin dry → bag'];
+
+// ================= LOOP =================
+const clock=new THREE.Clock();const tmp=V(0,0,0);
+const cClean=new THREE.Color(0x3fa9f5),cDirty=new THREE.Color(0x9aa595);
+let impAng=0,rotAng=0;
+function frame(){
+  requestAnimationFrame(frame);
+  const dt=Math.min(clock.getDelta(),0.05);
+  if(playing){T+=dt*spd;if(T>=T_END){T-=T_END;batch++;bagBatches++;if(bagBatches>8)bagBatches=1;}}
+  // phase calc
+  let ph,rpm=0,L=0,murk=0,valve=0,spray=false,vib=false,dry=false,g=0;
+  if(T<T_FILL){ph=0;const p=T/DUR.fill;L=200*p;rpm=p>0.7?60*(p-0.7)/0.3:0;}
+  else if(T<T_FEED){ph=1;L=200;rpm=60;}
+  else if(T<T_WASH){ph=2;const tw=T-T_FEED;L=200;rpm=tw<1.5?60+100*tw/1.5:160;murk=clamp(tw/DUR.wash);}
+  else{g=(T-T_WASH)/DUR.flow;ph=g<0.55?3:4;L=200*(1-clamp(g/0.42));rpm=g<0.45?80:g<0.58?80*(1-(g-0.45)/0.13):0;murk=1;valve=g<0.58?1:0;spray=g>0.08&&g<0.85;vib=g>0.04&&g<0.92;dry=g>0.25;}
+  // impeller
+  impAng+=rpm/60*Math.PI*2*dt*spd*(playing?1:0);imp.rotation.y=impAng;
+  if(dry&&playing){rotAng+=dt*spd*14;rotor.rotation.y=rotAng;}
+  // water
+  water.scale.y=Math.max(0.0001,L*0.001413);water.visible=L>0.5;
+  water.material.color.copy(cClean).lerp(cDirty,murk);
+  // valve gate
+  gate.position.z+=((valve?0.24:0)-gate.position.z)*0.15;
+  // highlight pipes / screw
+  const pulse=0.5+0.5*Math.sin(performance.now()/180);
+  fillPipe.children.forEach(m=>{m.material.emissive=new THREE.Color(ph===0?0x0a4f8a:0x000000);m.material.emissiveIntensity=ph===0?pulse:0;});
+  screw.material.emissive=new THREE.Color(ph===1?0x2a6a10:0);screw.material.emissiveIntensity=ph===1?pulse:0;
+  // screen vibration
+  scr.position.y=vib&&playing?0.004*Math.sin(performance.now()/14):0;
+  // bag fill
+  const fillH=Math.min(bagBatches,8)/8*0.9;pile.scale.y=Math.max(0.001,fillH);
+  // flakes
+  const now=performance.now()/1000;
+  for(let i=0;i<N;i++){
+    const p=P[i];let spin=0;
+    if(ph===0){tmp.copy(p.heap);}
+    else if(ph===1){const q=clamp(((T-T_FILL)/DUR.feed-p.d*0.6)/0.4);if(q<=0)tmp.copy(p.heap);else{at(p.feed,q,tmp);spin=q<1?1:0;}}
+    else if(ph===2){washPos(p,T-T_FEED,tmp);spin=1;}
+    else{const q=clamp((g-p.dep)/0.45);
+      if(q<=0){const ang=p.a+p.w*DUR.wash+(g*DUR.flow)*0.35;tmp.set(Math.cos(ang)*p.r,0.82+p.h*0.05+L*0.0004,Math.sin(ang)*p.r);spin=.3;}
+      else{p.flow.pts[p.flow.pts.length-1].y=0.15+fillH+p.h*0.07;at(p.flow,q,tmp);spin=q<1?1:0;if(vib&&tmp.x<-1.4&&tmp.x>-3.45)tmp.y+=0.006*Math.sin(now*60+i);}
+    }
+    dummy.position.copy(tmp);
+    dummy.rotation.set(p.rx+spin*now*p.s,p.ry+spin*now*p.s*0.7,p.rz);
+    dummy.updateMatrix();flakes.setMatrixAt(i,dummy.matrix);
+  }
+  flakes.instanceMatrix.needsUpdate=true;
+  // drops
+  drops.visible=spray;
+  if(spray){for(let i=0;i<ND;i++){const d=DP[i];const f=(now*1.6+d.o)%1;dummy.position.set(d.x+(f*0.05)*(d.o-.5),1.13-f*0.36,d.z);dummy.rotation.set(0,0,0);dummy.updateMatrix();drops.setMatrixAt(i,dummy.matrix);}drops.instanceMatrix.needsUpdate=true;}
+  controls.update();
+  renderer.render(scene,camera);
+  // labels
+  if(showLbl){const w=innerWidth,h=innerHeight;LBL.forEach(l=>{tmp.copy(l[1]).project(camera);if(tmp.z>1||tmp.z<-1){l.el.style.display='none';return;}l.el.style.display='';l.el.style.left=((tmp.x*0.5+0.5)*w)+'px';l.el.style.top=((-tmp.y*0.5+0.5)*h)+'px';});}
+  // UI throttled
+  if(now-lastUI>0.1){lastUI=now;
+    steps.forEach((s,k)=>s.classList.toggle('on',k===ph));
+    const kw=0.7*1100*Math.pow(rpm/60,3)*Math.pow(0.92,5)/1000*clamp(L/200,0.15,1);
+    $('vPh').textContent=PHN[ph];$('vRpm').textContent=rpm.toFixed(0)+' rpm';
+    $('vTip').textContent=(Math.PI*0.92*rpm/60).toFixed(1)+' m/s';
+    $('vKw').textContent=kw.toFixed(1)+' kW';$('vL').textContent=L.toFixed(0)+' L';
+    $('vB').textContent=batch;$('vKg').textContent=(Math.min(bagBatches,8)*60)+' kg';
+    $('vProg').style.width=(T/T_END*100).toFixed(1)+'%';
+  }
+}
+frame();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+})();
+</script>
+</body>
+</html>
