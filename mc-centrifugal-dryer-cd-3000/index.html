@@ -1,0 +1,355 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Centrifugal Dryer CD-3000</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: engineering datasheet — title block band, 3D viewer, then spec / calc / BOM sections on a drawing-sheet grid */
+:root{
+  --bg:#f3f6f8; --sheet:#ffffff; --fg:#13212b; --muted:#566874; --line:#c9d5dd;
+  --ink:#1f4fa8;        /* drawing-line blue, like the title block */
+  --cyan:#0aa6d6; --green:#7cb518; --red:#d7262e;  /* GIS logo colors */
+  --warn-bg:#fff4dc; --warn-fg:#7a4a00; --ok-bg:#e8f5d8; --ok-fg:#2f5a00;
+  --viewer:#e6ecf0;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e161c; --sheet:#152129; --fg:#e3ebf0; --muted:#93a6b2; --line:#2a3b46;
+  --ink:#7fa8f0; --cyan:#3cc3ee; --green:#9bd23a; --red:#ff5a60;
+  --warn-bg:#3a2c0e; --warn-fg:#ffd27a; --ok-bg:#1f3310; --ok-fg:#bfe88a; --viewer:#1b2a33; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e161c; --sheet:#152129; --fg:#e3ebf0; --muted:#93a6b2; --line:#2a3b46;
+  --ink:#7fa8f0; --cyan:#3cc3ee; --green:#9bd23a; --red:#ff5a60;
+  --warn-bg:#3a2c0e; --warn-fg:#ffd27a; --ok-bg:#1f3310; --ok-fg:#bfe88a; --viewer:#1b2a33; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:grid;gap:22px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,6vw,46px);line-height:1}
+h2{font-size:24px;color:var(--ink);display:flex;align-items:baseline;gap:10px}
+h2 small{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-weight:400}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+/* title block */
+.tb{border:1.5px solid var(--ink);background:var(--sheet);display:grid;grid-template-columns:auto 1fr auto}
+.tb>div{padding:12px 16px;min-width:0}
+.tb .logo{border-right:1.5px solid var(--ink);display:flex;flex-direction:column;justify-content:center;font-family:var(--f-display);font-weight:700;line-height:.95;font-size:15px;letter-spacing:.12em}
+.logo .g{color:var(--cyan)} .logo .i{color:var(--red);font-size:22px;letter-spacing:.05em} .logo .s{color:var(--green)}
+.tb .meta{border-left:1.5px solid var(--ink);display:grid;grid-template-columns:auto auto;gap:2px 14px;font-size:12px;align-content:center}
+.meta dt{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:10.5px;align-self:center}
+.meta dd{margin:0;font-family:var(--f-mono)}
+.tb .eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tb .sub{color:var(--muted);margin-top:6px;max-width:60ch}
+@media (max-width:720px){.tb{grid-template-columns:1fr}.tb .logo{border-right:0;border-bottom:1.5px solid var(--ink);flex-direction:row;gap:8px;align-items:baseline}.tb .meta{border-left:0;border-top:1.5px solid var(--ink)}}
+/* viewer */
+.viewer{position:relative;background:var(--viewer);border:1px solid var(--line);height:min(62vh,520px);min-height:340px;overflow:hidden;touch-action:none}
+.viewer canvas{display:block;width:100%;height:100%}
+.tags{position:absolute;inset:0;pointer-events:none}
+.tag{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:var(--sheet);border:1.5px solid var(--ink);color:var(--ink);font:600 11px/19px var(--f-mono);text-align:center}
+.ctrl{position:absolute;left:10px;top:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 20px)}
+.ctrl button{font:600 12.5px var(--f-body);padding:6px 10px;border:1px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;border-radius:3px}
+.ctrl button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.ctrl button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.hint{position:absolute;right:10px;bottom:8px;font:11px var(--f-mono);color:var(--muted)}
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 18px;font-size:13.5px;margin-top:10px}
+.legend span.n{display:inline-block;width:20px;height:20px;border:1.5px solid var(--ink);border-radius:50%;text-align:center;font:600 10.5px/17px var(--f-mono);color:var(--ink);margin-right:8px}
+/* sections */
+section{background:var(--sheet);border:1px solid var(--line);padding:18px 18px 20px;display:grid;gap:14px;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.07em}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.spec td:first-child{color:var(--muted);width:42%}
+.scroll{overflow-x:auto}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.calc div{background:var(--sheet);padding:12px}
+.calc .v{font:600 22px var(--f-mono);color:var(--fg)}
+.calc .v small{font-size:12px;color:var(--muted);font-weight:400}
+.calc .k{font-size:12.5px;color:var(--muted)}
+.calc .f{font:11px var(--f-mono);color:var(--muted);margin-top:4px}
+.notes{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.notes li{padding:10px 12px;border-left:4px solid var(--line);background:var(--bg)}
+.notes li.w{border-color:#e0a000;background:var(--warn-bg);color:var(--warn-fg)}
+.notes li.o{border-color:var(--green);background:var(--ok-bg);color:var(--ok-fg)}
+.notes b{font-weight:600}
+tr.grp td{font-family:var(--f-display);font-weight:600;font-size:16px;color:var(--ink);background:var(--bg);border-bottom:1.5px solid var(--ink)}
+tr.sub td{font-weight:600}
+tr.tot td{font-weight:700;font-size:15px;border-top:1.5px solid var(--ink);border-bottom:0}
+tr.price td{font-family:var(--f-display);font-size:22px;color:var(--ink);font-weight:700;border-bottom:0}
+.small{font-size:12.5px;color:var(--muted)}
+.bomtbl{min-width:640px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="tb">
+    <div class="logo"><span class="g">GLOBAL</span><span class="i">INTI</span><span class="s">SINERGI</span></div>
+    <div>
+      <div class="eyebrow">Konsep engineering · Washing line flake UPVC</div>
+      <h1>Centrifugal Dryer CD-3000</h1>
+      <p class="sub">Horizontal centrifugal dryer (dewatering) untuk flake UPVC ±5 mm hasil cuci. Sumbu kerja 3.000 mm, body luar bulat split atas–bawah, inlet hopper atas, outlet hopper samping, gear motor 5,5 kW direct drive, frame hollow 100×100, semua CS painting.</p>
+    </div>
+    <dl class="meta">
+      <dt>Dwg</dt><dd>GIS-CD3000-00</dd>
+      <dt>Rev</dt><dd>1 (konsep)</dd>
+      <dt>Tanggal</dt><dd>29-10-2026</dd>
+      <dt>Unit</dt><dd>mm</dd>
+      <dt>Berat</dt><dd>±1.700 kg</dd>
+    </dl>
+  </header>
+
+  <div>
+    <div class="viewer" id="viewer">
+      <div class="tags" id="tags"></div>
+      <div class="ctrl">
+        <button id="bSpin" aria-pressed="true">Rotor berputar</button>
+        <button id="bOpen" aria-pressed="false">Buka body atas</button>
+        <button id="bGuard" aria-pressed="true">Cover coupling</button>
+        <button id="bReset">Reset view</button>
+      </div>
+      <div class="hint">drag: putar · scroll/pinch: zoom</div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="two">
+    <section>
+      <h2>Spesifikasi <small>main data</small></h2>
+      <table class="spec"><tbody>
+        <tr><td>Tipe</td><td>Horizontal centrifugal (friction) dryer, rotor paddle + screen statis</td></tr>
+        <tr><td>Panjang sumbu kerja</td><td class="mono">3.000 mm</td></tr>
+        <tr><td>Body luar</td><td class="mono">Bulat Ø810, plat CS t4, split atas–bawah dengan flange baut</td></tr>
+        <tr><td>Rotor</td><td class="mono">Drum Ø400 t6 + 80 paddle t8 (4 baris × 20), Ø tip 650, sudut 12°</td></tr>
+        <tr><td>Screen</td><td class="mono">Perforated CS t3, lubang Ø2, ID 660, split 2 belahan</td></tr>
+        <tr><td>Putaran rotor</td><td class="mono">±725 rpm (VFD 600–800)</td></tr>
+        <tr><td>Penggerak</td><td class="mono">Gear motor 5,5 kW 4P, helical inline i=2, direct drive via flexible coupling</td></tr>
+        <tr><td>Bearing</td><td class="mono">22217 EK + H317, plummer SNL517 ×2, poros Ø80</td></tr>
+        <tr><td>Inlet</td><td>Hopper atas di sisi feed, bukaan 500×500, throat 250×250</td></tr>
+        <tr><td>Outlet</td><td>Chute tangensial + hopper samping 250×250 di sisi discharge</td></tr>
+        <tr><td>Drain air</td><td>Outlet Ø2" di titik terendah body bawah</td></tr>
+        <tr><td>Frame</td><td>Hollow CS 100×100×4, cradle body ×3, leveling feet</td></tr>
+        <tr><td>Material &amp; finishing</td><td>Semua CS, blasting + epoxy primer + top coat</td></tr>
+        <tr><td>Dimensi total</td><td class="mono">±4.800 L × 1.600 W × 1.950 H</td></tr>
+        <tr><td>Tinggi sumbu</td><td class="mono">1.050 mm dari lantai</td></tr>
+        <tr><td>Kapasitas desain</td><td class="mono">300–500 kg/h (kebutuhan 62,5 kg/h)</td></tr>
+        <tr><td>Target kadar air</td><td>≤ 2–3% air permukaan</td></tr>
+      </tbody></table>
+    </section>
+
+    <section>
+      <h2>Kalkulasi <small>sizing check</small></h2>
+      <div class="calc">
+        <div><div class="k">Putaran rotor</div><div class="v">725 <small>rpm</small></div><div class="f">1.450 rpm (4P) ÷ i 2</div></div>
+        <div><div class="k">Kecepatan tip paddle</div><div class="v">24,7 <small>m/s</small></div><div class="f">v = π·D·n/60, D = 650</div></div>
+        <div><div class="k">Faktor G di screen</div><div class="v">191 <small>G</small></div><div class="f">ω²·r / g</div></div>
+        <div><div class="k">Massa rotor</div><div class="v">366 <small>kg</small></div><div class="f">drum 178 + paddle 94 + disc 39 + stub 55</div></div>
+        <div><div class="k">Putaran kritis ke-1</div><div class="v">≈3.500 <small>rpm</small></div><div class="f">4,8× putaran operasi, aman</div></div>
+        <div><div class="k">Torsi nominal output</div><div class="v">72 <small>Nm</small></div><div class="f">gearbox SF ≥ 1,5 → ≥ 110 Nm</div></div>
+      </div>
+      <ul class="notes">
+        <li><b>Kenapa rotor Ø650.</b> Dengan i=2 putaran turun ke 725 rpm. Supaya kecepatan tip tetap ±25 m/s (kunci dewatering), diameter rotor dinaikkan dari 400 ke 650 mm. Ini sekaligus pas dengan body bulat Ø810.</li>
+        <li><b>Daya 5,5 kW cukup.</b> Estimasi beban jalan 2–3 kW pada 62,5 kg/h (windage paddle di dalam body ±0,8 kW, gesekan flake, rugi bearing dan gearbox). Inersia rotor 14 kg·m², jadi start wajib lewat VFD dengan ramp 60–90 s agar motor tidak trip.</li>
+        <li><b>Defleksi rotor.</b> Lendutan statis ±0,07 mm pada span bearing 3.500 mm, aman untuk celah tip–screen 5 mm. Rotor wajib dynamic balancing grade G6.3.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section>
+    <h2>Catatan engineering <small>untuk keputusan</small></h2>
+    <ul class="notes">
+      <li class="w"><b>Screen dan paddle CS painting: perawatan berkala.</b> Sesuai keputusan, semua material CS. Cat di paddle dan screen akan terkikis flake, jadi siapkan inspeksi bulanan, sikat lubang screen, dan cat ulang paddle. Screen dibuat 2 belahan baut supaya bisa diganti tanpa membongkar rotor.</li>
+      <li><b>Kapasitas jauh di atas kebutuhan.</b> Rotor 3 m mampu 300–500 kg/h, sedangkan kebutuhan 500 kg/shift = 62,5 kg/h. Jika panjang 3 m dipertahankan untuk layout atau rencana ekspansi, posisikan sebagai nilai tambah di penawaran.</li>
+      <li><b>Safety.</b> Body atas diberi limit switch interlock: rotor hanya bisa start bila tutup terpasang, dan tutup baru boleh dibuka setelah sensor putaran membaca rotor berhenti (run-down ±2–3 menit). Coupling diberi cover penuh, E-stop di panel.</li>
+      <li class="o"><b>Direct drive.</b> Gear motor i=2 dengan coupling menghilangkan pulley, V-belt, dan setel tegangan belt. Kuncinya alignment coupling saat instalasi dan base gear motor yang kaku.</li>
+      <li class="o"><b>Integrasi line.</b> Inlet menerima flake basah dari tangki cuci; outlet samping bisa disambung ke blower + cyclone bila nanti butuh pengeringan lanjutan. Drain air kembali ke bak settling.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>BOM &amp; estimasi biaya <small>harga Okt 2026, belum PPN</small></h2>
+    <div class="scroll"><table class="bomtbl" id="bom"></table></div>
+    <p class="small">* Tarif fabrikasi/welding dan assembly Rp 75.000/MH adalah asumsi (tidak ada di daftar Harga Proses GIS). Harga material dan part beli adalah estimasi pasar Jabodetabek, perlu dikunci dengan quotation supplier sebelum penawaran dikirim. Margin dihitung sebagai markup 25% atas HPP; bila 25% dimaksudkan dari harga jual, harga menjadi <span class="mono" id="altPrice"></span>.</p>
+  </section>
+
+  <section>
+    <h2>Langkah berikut</h2>
+    <ul class="notes">
+      <li>Konfirmasi tipe gear motor: 4 pole i=2 (output ±725 rpm) sebagai dasar desain ini.</li>
+      <li>Detail drawing A3 dengan title block GIS: GA, rotor assy, screen, body bulat, frame.</li>
+      <li>Quotation supplier: gear motor, VFD, bearing, perforated CS, subcon rolling dan balancing.</li>
+      <li>Lead time estimasi 8–10 minggu setelah PO (fabrikasi 5 minggu, balancing &amp; trial 1 minggu).</li>
+    </ul>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const BOM = {"items": [{"grp": "A. Material (CS)", "name": "Hollow CS", "spec": "100×100×4 (11,7 kg/m) — frame utama + dudukan motor, 7 btg×6 m", "qty": 491.4, "unit": "kg", "price": 17500, "total": 8599500}, {"grp": "A. Material (CS)", "name": "Plat CS t4", "spec": "body outer bulat Ø810, split atas–bawah, 3,1 m", "qty": 248, "unit": "kg", "price": 15500, "total": 3844000}, {"grp": "A. Material (CS)", "name": "Plat CS t5–t10", "spec": "tutup ujung body, saddle/cradle body", "qty": 79, "unit": "kg", "price": 15500, "total": 1224500}, {"grp": "A. Material (CS)", "name": "Flat bar & siku CS", "spec": "flange split, ring stiffener body", "qty": 60, "unit": "kg", "price": 16000, "total": 960000}, {"grp": "A. Material (CS)", "name": "Plat CS t3", "spec": "inlet hopper & outlet chute/hopper", "qty": 64, "unit": "kg", "price": 15500, "total": 992000}, {"grp": "A. Material (CS)", "name": "Plat CS t6", "spec": "drum rotor Ø400 × 3.000", "qty": 178, "unit": "kg", "price": 15500, "total": 2759000}, {"grp": "A. Material (CS)", "name": "Plat CS t8 & t20", "spec": "80 paddle 125×150 + 2 end disc Ø400", "qty": 139, "unit": "kg", "price": 15500, "total": 2154500}, {"grp": "A. Material (CS)", "name": "Round bar S45C", "spec": "Ø100 × 600 mm ×2 — stub shaft", "qty": 74, "unit": "kg", "price": 26000, "total": 1924000}, {"grp": "A. Material (CS)", "name": "Perforated CS t3", "spec": "lubang Ø2 mm, 1220×2440 ×3 lbr — screen Ø660", "qty": 141, "unit": "kg", "price": 32000, "total": 4512000}, {"grp": "A. Material (CS)", "name": "Flat bar CS", "spec": "50×8 & 40×6 — ring & batang penguat screen", "qty": 80, "unit": "kg", "price": 16000, "total": 1280000}, {"grp": "A. Material (CS)", "name": "Baut, mur, ring", "spec": "flange split, screen, anchor, leveling feet", "qty": 1, "unit": "lot", "price": 3500000, "total": 3500000}, {"grp": "B. Part beli (mekanik & elektrik)", "name": "Gear motor", "spec": "5,5 kW 4P, helical inline i=2 (±725 rpm), foot mounted", "qty": 1, "unit": "unit", "price": 21000000, "total": 21000000}, {"grp": "B. Part beli (mekanik & elektrik)", "name": "Bearing + plummer block", "spec": "SKF SNL517 + 22217 EK + H317 (eq.)", "qty": 2, "unit": "set", "price": 6000000, "total": 12000000}, {"grp": "B. Part beli (mekanik & elektrik)", "name": "Seal poros", "spec": "V-ring + labyrinth/gland packing", "qty": 2, "unit": "set", "price": 750000, "total": 1500000}, {"grp": "B. Part beli (mekanik & elektrik)", "name": "Flexible coupling", "spec": "tyre/jaw coupling, nominal ≥250 Nm", "qty": 1, "unit": "set", "price": 2500000, "total": 2500000}, {"grp": "B. Part beli (mekanik & elektrik)", "name": "Inverter (VFD)", "spec": "5,5 kW, soft start 60–90 s", "qty": 1, "unit": "unit", "price": 7500000, "total": 7500000}, {"grp": "B. Part beli (mekanik & elektrik)", "name": "Panel listrik", "spec": "Box 500×700, MCCB, PB, E-stop, lampu", "qty": 1, "unit": "lot", "price": 8000000, "total": 8000000}, {"grp": "B. Part beli (mekanik & elektrik)", "name": "Safety interlock", "spec": "limit switch tutup atas + sensor putaran", "qty": 1, "unit": "lot", "price": 3000000, "total": 3000000}, {"grp": "B. Part beli (mekanik & elektrik)", "name": "Kabel & aksesori", "spec": "NYY/NYYHY, glend, tray, terminal", "qty": 1, "unit": "lot", "price": 2000000, "total": 2000000}, {"grp": "C. Proses (tarif GIS)", "name": "Laser cutting plat", "spec": "paddle, end disc, flange, ring", "qty": 8, "unit": "jam", "price": 200000, "total": 1600000}, {"grp": "C. Proses (tarif GIS)", "name": "Bending plat", "spec": "hopper, chute, bracket", "qty": 120, "unit": "stroke", "price": 5000, "total": 600000}, {"grp": "C. Proses (tarif GIS)", "name": "CNC bubut", "spec": "stub shaft, dudukan bearing, alur pasak", "qty": 8, "unit": "jam", "price": 250000, "total": 2000000}, {"grp": "C. Proses (tarif GIS)", "name": "Bubut konvensional", "spec": "facing/true-run ujung rotor", "qty": 10, "unit": "jam", "price": 75000, "total": 750000}, {"grp": "C. Proses (tarif GIS)", "name": "Milling konvensional", "spec": "pad dudukan bearing & gear motor", "qty": 6, "unit": "jam", "price": 75000, "total": 450000}, {"grp": "C. Proses (tarif GIS)", "name": "Drilling", "spec": "lubang flange split, frame, screen", "qty": 30, "unit": "jam", "price": 10000, "total": 300000}, {"grp": "C. Proses (tarif GIS)", "name": "Tap", "spec": "ulir baut screen & cover", "qty": 6, "unit": "jam", "price": 30000, "total": 180000}, {"grp": "C. Proses (tarif GIS)", "name": "Fabrikasi & welding*", "spec": "frame, body, rotor, screen, hopper", "qty": 220, "unit": "MH", "price": 75000, "total": 16500000}, {"grp": "C. Proses (tarif GIS)", "name": "Assembly mekanik & elektrik*", "spec": "setting, alignment coupling, wiring", "qty": 56, "unit": "MH", "price": 75000, "total": 4200000}, {"grp": "C. Proses (tarif GIS)", "name": "Rolling (subcon)", "spec": "body Ø810, drum rotor Ø400, screen Ø660", "qty": 1, "unit": "lot", "price": 8000000, "total": 8000000}, {"grp": "C. Proses (tarif GIS)", "name": "Dynamic balancing (subcon)", "spec": "rotor ±390 kg, grade G6.3", "qty": 1, "unit": "lot", "price": 6000000, "total": 6000000}, {"grp": "C. Proses (tarif GIS)", "name": "Painting", "spec": "blasting + epoxy primer + top coat ±53 m²", "qty": 53, "unit": "m²", "price": 90000, "total": 4770000}, {"grp": "D. Engineering & lain-lain", "name": "Engineering design", "spec": "konsep 3D, detail drawing, BOM, manual", "qty": 1, "unit": "lot", "price": 10000000, "total": 10000000}, {"grp": "D. Engineering & lain-lain", "name": "Consumable", "spec": "kawat las, gas, gerinda, cat touch-up", "qty": 1, "unit": "lot", "price": 4500000, "total": 4500000}, {"grp": "D. Engineering & lain-lain", "name": "Transport, instalasi, trial", "spec": "Jabodetabek, 1 hari trial", "qty": 1, "unit": "lot", "price": 6000000, "total": 6000000}], "groups": {"A. Material (CS)": 31749500, "B. Part beli (mekanik & elektrik)": 57500000, "C. Proses (tarif GIS)": 45350000, "D. Engineering & lain-lain": 20500000}, "sub": 155099500, "cont": 7754975, "cost": 162854475, "markup": 203568094, "onprice": 217139300};
+const rp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+const fq = q => (Math.abs(q-Math.round(q))<0.05 ? Math.round(q) : q.toFixed(1)).toLocaleString('id-ID');
+(function buildBom(){
+  const t=document.getElementById('bom');
+  let h='<thead><tr><th>Item</th><th>Spesifikasi</th><th class="num">Qty</th><th>Sat.</th><th class="num">Harga sat.</th><th class="num">Jumlah</th></tr></thead><tbody>';
+  let cur=null;
+  BOM.items.forEach((it,i)=>{
+    if(it.grp!==cur){
+      if(cur) h+=`<tr class="sub"><td colspan="5">Subtotal</td><td class="num">${rp(BOM.groups[cur])}</td></tr>`;
+      cur=it.grp; h+=`<tr class="grp"><td colspan="6">${cur}</td></tr>`;
+    }
+    h+=`<tr><td>${it.name}</td><td>${it.spec}</td><td class="num">${fq(it.qty)}</td><td>${it.unit}</td><td class="num">${rp(it.price)}</td><td class="num">${rp(it.total)}</td></tr>`;
+  });
+  h+=`<tr class="sub"><td colspan="5">Subtotal</td><td class="num">${rp(BOM.groups[cur])}</td></tr>`;
+  h+=`<tr class="sub"><td colspan="5">Total A–D</td><td class="num">${rp(BOM.sub)}</td></tr>`;
+  h+=`<tr><td colspan="5">Kontingensi 5%</td><td class="num">${rp(BOM.cont)}</td></tr>`;
+  h+=`<tr class="tot"><td colspan="5">HPP (harga pokok)</td><td class="num">${rp(BOM.cost)}</td></tr>`;
+  h+=`<tr><td colspan="5">Margin 25% (markup)</td><td class="num">${rp(BOM.markup-BOM.cost)}</td></tr>`;
+  h+=`<tr class="price"><td colspan="5">Harga jual (pembulatan)</td><td class="num">${rp(Math.ceil(BOM.markup/1e6)*1e6)}</td></tr>`;
+  h+='</tbody>'; t.innerHTML=h;
+  document.getElementById('altPrice').textContent=rp(Math.ceil(BOM.onprice/1e6)*1e6);
+})();
+
+/* ---------- 3D model (units: metres, X = axis of rotor) ---------- */
+(function three(){
+  if(!window.THREE) return;
+  const host=document.getElementById('viewer');
+  const css=getComputedStyle(document.documentElement);
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  host.prepend(renderer.domElement);
+  const scene=new THREE.Scene();
+  const cam=new THREE.PerspectiveCamera(35,1,0.05,60);
+  const ctl=new THREE.OrbitControls(cam,renderer.domElement);
+  ctl.enableDamping=true;
+  const home=()=>{cam.position.set(-3.0,3.2,5.8);ctl.target.set(1.1,0.9,0);ctl.update();};
+  home();
+  scene.add(new THREE.HemisphereLight(0xffffff,0x8899aa,0.75));
+  const dl=new THREE.DirectionalLight(0xffffff,0.75); dl.position.set(3,6,4); scene.add(dl);
+  const dl2=new THREE.DirectionalLight(0xffffff,0.3); dl2.position.set(-4,3,-3); scene.add(dl2);
+
+  const M=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,metalness:.35,roughness:.55},o));
+  const mFrame=M(0x2b4fa0), mHouse=M(0x9fb3bf,{transparent:true,opacity:1,side:THREE.DoubleSide}),
+        mSS=M(0xd9dde0,{metalness:.8,roughness:.3}), mRotor=M(0x5b6670), mPad=M(0x8a959e),
+        mMotor=M(0x2f7d55), mBelt=M(0x222222), mGuard=M(0xf2c230,{transparent:true,opacity:.85}),
+        mHop=M(0x9fb3bf,{side:THREE.DoubleSide}), mFloor=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.06});
+  const box=(w,h,d,m,x,y,z,p=scene)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);p.add(o);return o;};
+  // floor shadow
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(6.0,2.8),mFloor); fl.rotation.x=-Math.PI/2; fl.position.set(1.05,0.001,0.2); scene.add(fl);
+
+  // ---- frame: hollow 100x100
+  const s=0.1, zL=[-0.50,0.50], yTop=0.85, AX=1.05, R0=0.405;
+  zL.forEach(z=>{
+    box(4.8,s,s,mFrame,1.05,0.10,z);
+    box(4.8,s,s,mFrame,1.05,yTop,z);
+    [-1.30,-0.25,1.50,3.40].forEach(x=>box(s,yTop-0.10,s,mFrame,x,(yTop+0.10)/2,z));
+    [-1.30,3.40].forEach(x=>{const f=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.04,16),M(0x333333));f.position.set(x,0.02,z);scene.add(f);});
+  });
+  [-1.30,-0.75,-0.25,0.30,1.50,2.70,3.25,3.40].forEach(x=>box(s,s,1.1,mFrame,x,yTop,0));
+  [-1.30,1.50,3.40].forEach(x=>box(s,s,1.1,mFrame,x,0.10,0));
+  [-0.25,3.25].forEach(x=>box(0.12,0.1,0.9,mFrame,x,0.95,0));            // bearing pedestals
+  [0.30,1.50,2.70].forEach(x=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(R0+0.01,R0+0.01,0.08,40,1,false,Math.PI,Math.PI),mFrame); // cradle
+    c.rotation.z=Math.PI/2; c.position.set(x,AX,0); c.scale.set(1,1,1); scene.add(c);
+    box(0.08,AX-R0-yTop+0.05,0.5,mFrame,x,(AX-R0+yTop)/2,0);});
+
+  // ---- body luar bulat Ø810 split atas–bawah
+  const half=(t0,m)=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(R0,R0,3.1,48,1,true,t0,Math.PI),m);c.rotation.z=Math.PI/2;c.position.set(1.5,AX,0);scene.add(c);return c;};
+  const mBodyLow=M(0x9fb3bf,{side:THREE.DoubleSide});
+  half(Math.PI,mBodyLow); half(0,mHouse);
+  [-0.05,3.05].forEach(x=>{const d=new THREE.Mesh(new THREE.CircleGeometry(R0,48),mBodyLow);d.rotation.y=Math.PI/2;d.position.set(x,AX,0);scene.add(d);});
+  [-1,1].forEach(sd=>box(3.1,0.014,0.06,mFrame,1.5,AX,sd*(R0+0.025)));       // flange split
+  [0.0,1.0,2.0,3.0].forEach(x=>{const r=new THREE.Mesh(new THREE.TorusGeometry(R0+0.006,0.01,6,48),mFrame);r.rotation.y=Math.PI/2;r.position.set(x,AX,0);scene.add(r);});
+  [0.5,2.5].forEach(x=>{const h=new THREE.Mesh(new THREE.TorusGeometry(.05,.012,8,20,Math.PI),M(0x444444));h.position.set(x,AX+R0+0.01,0);h.rotation.y=Math.PI/2;scene.add(h);}); // handle
+  const yB=AX-R0, yT=AX+R0;
+  const drain=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.2,16),M(0x666666)); drain.position.set(2.95,yB-0.1,0); scene.add(drain);
+
+  // ---- screen perforated CS Ø660
+  const cv=document.createElement('canvas'); cv.width=cv.height=64; const cx=cv.getContext('2d');
+  cx.fillStyle='#8e9aa4';cx.fillRect(0,0,64,64);cx.fillStyle='#3a434a';
+  for(let i=0;i<4;i++)for(let j=0;j<4;j++){cx.beginPath();cx.arc(8+i*16+(j%2)*8,8+j*16,3.2,0,7);cx.fill();}
+  const tex=new THREE.CanvasTexture(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(60,18);
+  const scr=new THREE.Mesh(new THREE.CylinderGeometry(.33,.33,3.0,48,1,true),M(0xffffff,{map:tex,side:THREE.DoubleSide,metalness:.4,roughness:.5,transparent:true,opacity:.55}));
+  scr.rotation.z=Math.PI/2; scr.position.set(1.5,AX,0); scene.add(scr);
+  [0,0.5,1,1.5,2,2.5,3].forEach(x=>{const r=new THREE.Mesh(new THREE.TorusGeometry(.337,.008,6,48),M(0x7d8a94));r.rotation.y=Math.PI/2;r.position.set(x,AX,0);scene.add(r);});
+
+  // ---- rotor: drum Ø400 + paddle tip Ø650
+  const rotor=new THREE.Group(); rotor.position.set(0,AX,0); scene.add(rotor);
+  const drum=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,3.0,40),mRotor); drum.rotation.z=Math.PI/2; drum.position.x=1.5; rotor.add(drum);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,3.95,20),mSS); shaft.rotation.z=Math.PI/2; shaft.position.x=1.48; rotor.add(shaft);
+  const pg=new THREE.BoxGeometry(0.15,0.125,0.008);
+  for(let row=0;row<4;row++){for(let k=0;k<20;k++){
+    const piv=new THREE.Group(); piv.rotation.x=row*Math.PI/2+k*0.08;
+    const p=new THREE.Mesh(pg,mPad); p.position.set(0.075+k*0.15,0.2+0.0625,0); p.rotation.y=0.21;
+    piv.add(p); rotor.add(piv);
+  }}
+  [-0.25,3.25].forEach(x=>{box(0.16,0.12,0.36,M(0x3a3f44),x,AX-0.05,0);const b=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.12,24),M(0x3a3f44));b.rotation.z=Math.PI/2;b.position.set(x,AX,0);scene.add(b);});
+
+  // ---- drive: gear motor inline i=2 + coupling
+  const cyl=(r,l,m,x,y,z)=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,l,32),m);c.rotation.z=Math.PI/2;c.position.set(x,y,z);scene.add(c);return c;};
+  cyl(.07,.10,M(0x50585e),-0.50,AX,0);                       // coupling
+  box(0.26,0.30,0.28,mMotor,-0.70,AX,0);                      // gearbox housing
+  box(0.30,0.03,0.34,mMotor,-0.70,AX-0.15,0);                 // gearbox foot
+  cyl(.135,.42,mMotor,-1.04,AX+0.02,0);                       // motor body
+  for(let i=0;i<12;i++){const f=box(0.38,0.012,0.03,mMotor,-1.04,AX+0.02+Math.cos(i*Math.PI/6)*.14,Math.sin(i*Math.PI/6)*.14);f.rotation.x=i*Math.PI/6;}
+  cyl(.12,.08,M(0x26303a),-1.29,AX+0.02,0);                   // fan cover
+  box(0.18,0.14,0.12,mMotor,-1.00,AX+0.02,0.20);              // terminal box
+  box(0.75,0.03,0.42,mFrame,-0.92,yTop+0.065,0);              // motor base plate
+  box(0.75,AX-0.165-yTop-0.08,0.1,mFrame,-0.92,(AX-0.165+yTop+0.08)/2,0);
+  const guard=box(0.22,0.24,0.24,mGuard,-0.50,AX,0);
+
+  // ---- inlet hopper (top, feed end)
+  const frustum=(top,bot,h,m)=>{const g=new THREE.CylinderGeometry(top/Math.SQRT2,bot/Math.SQRT2,h,4,1,true);g.rotateY(Math.PI/4);return new THREE.Mesh(g,m);};
+  box(0.25,0.08,0.25,mHop,0.30,yT+0.02,0);
+  const hop=frustum(.5,.25,.40,mHop); hop.position.set(0.30,yT+0.26,0); scene.add(hop);
+  // ---- outlet: tangential chute + side hopper (+z)
+  box(0.26,0.26,0.34,mHop,2.82,AX+0.12,R0+0.08);
+  const oh=frustum(.36,.2,.34,mHop); oh.position.set(2.82,AX-0.13,R0+0.32); scene.add(oh);
+  box(0.2,0.08,0.2,mHop,2.82,AX-0.34,R0+0.32);
+  // ---- panel listrik
+  box(0.45,0.65,0.2,M(0xd8dde2),-1.0,1.25,0.95); box(0.04,0.04,0.02,M(0xd7262e),-1.0,1.42,1.06);
+
+  // ---- callout tags
+  const tags=[
+    [1,'Inlet hopper (atas)',[0.30,yT+0.50,0]],
+    [2,'Outlet hopper (samping)',[2.82,AX-0.05,R0+0.55]],
+    [3,'Rotor paddle Ø650, sumbu 3.000',[1.5,AX+0.02,0.0]],
+    [4,'Screen perforated CS Ø660',[2.3,AX+0.30,0.0]],
+    [5,'Body bulat Ø810 split atas–bawah',[1.0,AX+0.2,-R0-0.03]],
+    [6,'Frame hollow 100×100',[1.4,0.10,0.50]],
+    [7,'Gear motor 5,5 kW i=2',[-1.04,AX+0.02,0.17]],
+    [8,'Bearing SNL517 ×2',[3.25,AX,0.18]],
+    [9,'Drain air Ø2"',[2.95,yB-0.22,0]],
+    [10,'Panel + VFD',[-1.0,1.25,1.06]],
+    [11,'Flexible coupling + cover',[-0.50,AX+0.16,0]]
+  ];
+  const tagHost=document.getElementById('tags'), leg=document.getElementById('legend');
+  const tagEls=tags.map(([n,t,p])=>{const e=document.createElement('div');e.className='tag';e.textContent=n;tagHost.appendChild(e);
+    leg.insertAdjacentHTML('beforeend',`<div><span class="n">${n}</span>${t}</div>`);return {e,v:new THREE.Vector3(...p)};});
+
+  // ---- controls
+  let spin=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const bSpin=document.getElementById('bSpin'); bSpin.setAttribute('aria-pressed',spin);
+  bSpin.onclick=()=>{spin=!spin;bSpin.setAttribute('aria-pressed',spin);};
+  const bOpen=document.getElementById('bOpen');
+  bOpen.onclick=()=>{const o=bOpen.getAttribute('aria-pressed')!=='true';bOpen.setAttribute('aria-pressed',o);mHouse.opacity=o?0.12:1;mHouse.depthWrite=!o;};
+  const bGuard=document.getElementById('bGuard');
+  bGuard.onclick=()=>{const o=bGuard.getAttribute('aria-pressed')!=='true';bGuard.setAttribute('aria-pressed',o);guard.visible=o;};
+  document.getElementById('bReset').onclick=home;
+
+  function size(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}
+  new ResizeObserver(size).observe(host); size();
+  const v=new THREE.Vector3();
+  (function loop(){
+    if(spin) rotor.rotation.x+=0.12;
+    ctl.update(); renderer.render(scene,cam);
+    const w=host.clientWidth,h=host.clientHeight;
+    tagEls.forEach(t=>{v.copy(t.v).project(cam);t.e.style.left=((v.x+1)/2*w)+'px';t.e.style.top=((1-v.y)/2*h)+'px';t.e.hidden=v.z>1;});
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+
+</body></html>
