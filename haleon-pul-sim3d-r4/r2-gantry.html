@@ -1,0 +1,1071 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Simulasi 3D konsep Opsi B Haleon PUL: robotic case packing dan gantry palletizing — PT Global Inti Sinergi">
+<title>Simulasi 3D Haleon PUL</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: full-bleed 3D cell; drawing-style title block top-left, status rail right, control strip bottom. */
+:root{
+  --bg:#e7ebef; --scene:#dfe4e9; --ground:#cfd5db; --floor:#c4cbd2; --gridline:#9aa4ae;
+  --panel:rgba(249,250,251,.94); --panel-solid:#f9fafb; --ink:#16202a; --ink2:#52606c; --line:rgba(22,32,42,.14);
+  --m1:#1f5fbf; --m2:#d2661e; --serah:#e6007e; --ok:#23895a; --warn:#c98d00; --crit:#c8372d; --info:#2f6fd0; --idle:#8a96a1;
+  --chip:#eef1f4; --btn:#ffffff; --btn-on:#16202a; --btn-on-ink:#ffffff;
+  --font:'IBM Plex Sans Condensed','Arial Narrow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1419; --scene:#111920; --ground:#141d25; --floor:#2b343d; --gridline:#58636e;
+  --panel:rgba(18,25,32,.92); --panel-solid:#121920; --ink:#e6ecf1; --ink2:#9ba8b4; --line:rgba(230,236,241,.14);
+  --m1:#6a9ae6; --m2:#ec8b45; --serah:#ff5aae; --ok:#3fbf7f; --warn:#e5ad2a; --crit:#ec5a4f; --info:#6c9ff0; --idle:#6c7884;
+  --chip:#1b252e; --btn:#1a232c; --btn-on:#e6ecf1; --btn-on-ink:#0e1419; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1419; --scene:#111920; --ground:#141d25; --floor:#2b343d; --gridline:#58636e;
+  --panel:rgba(18,25,32,.92); --panel-solid:#121920; --ink:#e6ecf1; --ink2:#9ba8b4; --line:rgba(230,236,241,.14);
+  --m1:#6a9ae6; --m2:#ec8b45; --serah:#ff5aae; --ok:#3fbf7f; --warn:#e5ad2a; --crit:#ec5a4f; --info:#6c9ff0; --idle:#6c7884;
+  --chip:#1b252e; --btn:#1a232c; --btn-on:#e6ecf1; --btn-on-ink:#0e1419; color-scheme:dark }
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;overflow:hidden}
+[hidden]{display:none!important}
+#app{position:relative;height:100%;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.labels{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.tb,.panel,.bar{z-index:2}
+.lbl{font:500 11px/1.15 var(--font);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--idle);padding:3px 6px;border-radius:3px;white-space:nowrap;letter-spacing:.01em;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.lbl.m1{border-left-color:var(--m1)} .lbl.m2{border-left-color:var(--m2)} .lbl.serah{border-left-color:var(--serah);color:var(--serah);font-weight:600}
+.lbl.big{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.lbl.floor{background:transparent;border:0;box-shadow:none;color:var(--ink2);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:10.5px}
+.lbl .st{font-family:var(--mono);font-size:10.5px;color:var(--ink2);margin-left:4px}
+.nolabels .labels{display:none}
+
+/* title block */
+.tb{position:absolute;top:16px;left:max(16px,env(safe-area-inset-left,0px));background:var(--panel);border:1.5px solid var(--ink);display:grid;grid-template-columns:auto auto;max-width:min(430px,calc(100% - 32px));backdrop-filter:blur(6px)}
+.tb-main{padding:8px 12px 9px;border-right:1px solid var(--ink);min-width:0}
+.tb-co{font:600 10px/1 var(--mono);letter-spacing:.12em;color:var(--ink2)}
+.tb-title{font:700 20px/1.05 var(--font);margin-top:5px;text-wrap:balance}
+.tb-sub{font-size:12.5px;color:var(--ink2);margin-top:3px}
+.tb-meta{margin:0;display:grid;grid-auto-rows:1fr}
+.tb-meta div{display:grid;grid-template-columns:auto;padding:4px 10px;border-bottom:1px solid var(--line);min-width:64px}
+.tb-meta div:last-child{border-bottom:0}
+.tb-meta dt{font:500 9px/1 var(--mono);letter-spacing:.1em;color:var(--ink2)}
+.tb-meta dd{margin:3px 0 0;font:600 12px/1 var(--mono)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:7px;font-size:11.5px;color:var(--ink2)}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+
+/* status panel */
+.panel{position:absolute;top:16px;right:max(16px,env(safe-area-inset-right,0px));width:304px;max-height:calc(100% - 112px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;backdrop-filter:blur(6px);box-shadow:0 6px 24px rgba(0,0,0,.08)}
+.sec{padding:10px 12px;border-bottom:1px solid var(--line)}
+.sec:last-child{border-bottom:0}
+.h{font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin:0 0 8px}
+.clock{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.clock b{font:600 26px/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.clock span{font:500 12px var(--mono);color:var(--ink2)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.kpi{background:var(--chip);border-radius:4px;padding:6px 8px;min-width:0}
+.kpi b{display:block;font:600 18px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.kpi small{display:block;font-size:11px;color:var(--ink2);line-height:1.2;margin-top:2px}
+.batch{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.batch .sku{font:600 11px var(--mono);padding:1px 6px;border-radius:3px;color:#fff}
+.prog{height:6px;background:var(--chip);border-radius:3px;margin-top:6px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--m2);width:0}
+.note{font-size:12px;color:var(--ink2);margin-top:5px;line-height:1.35}
+.st-row{display:grid;grid-template-columns:12px 34px 1fr auto;align-items:center;gap:8px;padding:4px 0}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--idle);box-shadow:0 0 0 2px var(--chip)}
+.st-row b{font:600 12.5px var(--mono)}
+.st-row .s{font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.segs{display:grid;grid-template-columns:repeat(8,6px);gap:2px}
+.segs i{height:10px;background:var(--chip);border:1px solid var(--line);border-radius:1px}
+.segs i.on{background:var(--m2);border-color:var(--m2)}
+.sig{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.pill{display:flex;align-items:center;gap:6px;font:600 11px var(--mono);letter-spacing:.04em;padding:5px 7px;border:1px solid var(--line);border-radius:4px;color:var(--ink2);background:var(--chip)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--idle);flex:none}
+.pill.on{color:var(--ink)} .pill.on.ok i{background:var(--ok);box-shadow:0 0 6px var(--ok)} .pill.on.warn i{background:var(--warn);box-shadow:0 0 6px var(--warn)} .pill.on.crit i{background:var(--crit);box-shadow:0 0 6px var(--crit)} .pill.on.info i{background:var(--serah);box-shadow:0 0 6px var(--serah)}
+.unit{display:grid;grid-template-columns:62px 1fr auto;gap:2px 8px;font-size:12.5px;padding:3px 0;align-items:baseline}
+.unit b{font-weight:600}
+.unit em{font-style:normal;font:500 11.5px var(--mono);color:var(--ink2);font-variant-numeric:tabular-nums}
+.unit .tag{grid-column:2/4;font-size:11.5px;color:var(--warn)}
+.log{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.35}
+.log li{display:grid;grid-template-columns:58px 1fr;gap:6px;padding:3px 0;border-top:1px dashed var(--line)}
+.log li:first-child{border-top:0}
+.log time{font:500 11px var(--mono);color:var(--ink2);font-variant-numeric:tabular-nums}
+
+/* control strip */
+.bar{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:16px;display:flex;justify-content:center;pointer-events:none}
+.bar-in{pointer-events:auto;display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px;overflow-x:auto;max-width:100%;backdrop-filter:blur(6px);box-shadow:0 6px 24px rgba(0,0,0,.08)}
+.grp{display:flex;gap:2px;align-items:center;flex:none}
+.grp>span{font:600 9.5px var(--mono);letter-spacing:.1em;color:var(--ink2);text-transform:uppercase;margin:0 6px 0 2px}
+.sep{width:1px;align-self:stretch;background:var(--line);flex:none}
+button{font:600 12.5px var(--font);color:var(--ink);background:var(--btn);border:1px solid var(--line);border-radius:4px;padding:6px 10px;cursor:pointer;white-space:nowrap;line-height:1}
+button:hover{border-color:var(--ink2)}
+button[aria-pressed="true"]{background:var(--btn-on);color:var(--btn-on-ink);border-color:var(--btn-on)}
+button:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+#play{min-width:74px}
+#panelBtn{display:none}
+@media (max-width:760px){
+  .tb{grid-template-columns:1fr}.tb-meta{display:none}.tb-main{border-right:0}.tb-title{font-size:17px}.legend{display:none}
+  .panel{top:auto;bottom:70px;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));width:auto;max-height:46%}
+  .panel.collapsed{display:none}
+  #panelBtn{display:inline-block}
+  .bar{justify-content:flex-start}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="tb">
+    <div class="tb-main">
+      <div class="tb-co">PT GLOBAL INTI SINERGI</div>
+      <div class="tb-title">Haleon PUL — Opsi B</div>
+      <div class="tb-sub">Case packing (M1) + gantry palletizing (M2), di atas denah RFQ</div>
+      <div class="legend"><span><i style="background:var(--m1)"></i>Modul 1</span><span><i style="background:var(--m2)"></i>Modul 2</span><span><i style="background:var(--serah)"></i>Titik serah</span><span><i style="background:#9aa3ab"></i>Existing</span></div>
+    </div>
+    <dl class="tb-meta">
+      <div><dt>DWG</dt><dd>OPSI B</dd></div>
+      <div><dt>REV</dt><dd>R2</dd></div>
+      <div><dt>STATUS</dt><dd>KONSEP</dd></div>
+    </dl>
+  </header>
+
+  <aside class="panel" id="panel" aria-label="Status simulasi">
+    <div class="sec">
+      <div class="clock"><b id="clk">00:00:00</b><span id="spdTxt">10× · berjalan</span></div>
+      <div class="kpis">
+        <div class="kpi"><b id="kCart">0</b><small>karton dikemas</small></div>
+        <div class="kpi"><b id="kShip">0</b><small>shipper ke pallet</small></div>
+        <div class="kpi"><b id="kPal">0</b><small>pallet keluar</small></div>
+      </div>
+    </div>
+    <div class="sec">
+      <p class="h">Batch</p>
+      <div class="batch"><span>Cartoner: <b id="bCart">B-001</b></span><span class="sku" id="bCartSku">PLCF</span></div>
+      <div class="batch" style="margin-top:6px"><span>Palletizing: <b id="bPal">B-001</b></span><span id="bPalN" style="font-family:var(--mono);font-size:12px">13/20</span></div>
+      <div class="prog"><i id="bProg"></i></div>
+      <div class="note" id="bNote">Pallet dialokasikan per batch; sisa batch ditutup sebagai pallet parsial.</div>
+    </div>
+    <div class="sec">
+      <p class="h">Pallet station</p>
+      <div id="stList"></div>
+    </div>
+    <div class="sec">
+      <p class="h">Interface M1 ↔ M2 (I/O)</p>
+      <div class="sig">
+        <div class="pill ok" id="sReady"><i></i>READY</div>
+        <div class="pill info" id="sOut"><i></i>SHIPPER OUT</div>
+        <div class="pill warn" id="sFull"><i></i>FULL / STOP</div>
+        <div class="pill crit" id="sFault"><i></i>FAULT</div>
+      </div>
+    </div>
+    <div class="sec">
+      <p class="h">Unit</p>
+      <div class="unit"><b>Cobot</b><span id="uCob">—</span><em id="uCobU">0%</em><span class="tag" id="uCobT" hidden>Kecepatan aman: OP-M1 di zona scanner</span></div>
+      <div class="unit"><b>Gantry</b><span id="uGan">—</span><em id="uGanU">0%</em></div>
+      <div class="unit"><b>Gate</b><span id="uGate">—</span><em></em></div>
+      <div class="unit"><b>Handlift</b><span id="uHl">—</span><em></em></div>
+      <div class="unit"><b>OP-M1</b><span id="uOp">—</span><em></em></div>
+    </div>
+    <div class="sec">
+      <p class="h">Kejadian</p>
+      <ul class="log" id="log"></ul>
+    </div>
+  </aside>
+
+  <nav class="bar" aria-label="Kontrol simulasi">
+    <div class="bar-in">
+      <div class="grp"><button id="play" aria-pressed="false">Jeda</button><button id="panelBtn" aria-pressed="false">Status</button></div>
+      <div class="sep"></div>
+      <div class="grp" id="spd"><span>Kecepatan</span>
+        <button data-s="1">1×</button><button data-s="5">5×</button><button data-s="10" aria-pressed="true">10×</button><button data-s="30">30×</button><button data-s="60">60×</button></div>
+      <div class="sep"></div>
+      <div class="grp" id="cams"><span>Kamera</span>
+        <button data-c="ov" aria-pressed="true">Overview</button><button data-c="m1">Modul 1</button><button data-c="m2">Modul 2</button><button data-c="top">Atas</button><button data-c="hl">Ikuti handlift</button></div>
+      <div class="sep"></div>
+      <div class="grp"><span>Tampilan</span>
+        <button id="tLbl" aria-pressed="true">Label</button><button id="tZone" aria-pressed="true">Zona</button><button id="tWall" aria-pressed="false">Dinding penuh</button></div>
+      <div class="sep"></div>
+      <div class="grp"><button id="reset">Ulang</button></div>
+    </div>
+  </nav>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+/* ============================================================
+   Koordinat: X/Y layout dalam mm (X ke timur, Y ke selatan, sesuai
+   denah RFQ / drawing GIS). Tinggi dalam meter. Dunia 3D dalam meter.
+   ============================================================ */
+const OX = 4.35, OZ = 2.9, DEG = Math.PI / 180;
+const wx = X => X / 1000 - OX, wz = Y => Y / 1000 - OZ;
+const V = (X, Y, h = 0) => new THREE.Vector3(wx(X), h, wz(Y));
+
+const app = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.domElement.id = 'gl';
+app.prepend(renderer.domElement);
+const labelR = new CSS2DRenderer();
+labelR.domElement.className = 'labels';
+app.insertBefore(labelR.domElement, document.querySelector('.tb'));
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 200);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.maxPolarAngle = 88 * DEG; controls.minDistance = 1.5; controls.maxDistance = 40;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x7d848c, 0.95));
+const sun = new THREE.DirectionalLight(0xffffff, 1.7);
+sun.position.set(-5, 13, 7); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 7, bottom: -7, near: 2, far: 35 });
+sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.02;
+scene.add(sun, sun.target);
+const fill = new THREE.DirectionalLight(0xdfe8ff, 0.35); fill.position.set(8, 6, -6); scene.add(fill);
+
+/* ---------------- material ---------------- */
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, metalness: 0.08, ...o });
+const mat = {
+  floor: M(0xc4cbd2, { roughness: 0.9 }), ground: M(0xcfd5db, { roughness: 1 }), wall: M(0xe3e0d9, { roughness: 0.95 }),
+  exist: M(0xaeb5bc), existDark: M(0x6f7880), stainless: M(0xc8cfd5, { metalness: 0.55, roughness: 0.35 }),
+  roller: M(0xa3abb3, { metalness: 0.75, roughness: 0.3 }), belt: M(0x2a3036, { roughness: 0.85 }),
+  m1: M(0x1f5fbf, { roughness: 0.45 }), m1Light: M(0xd9e4f6), m2: M(0xd2661e, { roughness: 0.45 }), m2Light: M(0xf3dccb),
+  kraft: M(0xc49a5c, { roughness: 0.92 }), kraftDark: M(0xb0864a, { roughness: 0.92 }), wood: M(0xc09160, { roughness: 0.9 }), woodDark: M(0x9c7344, { roughness: 0.9 }),
+  yellow: M(0xe2b400, { roughness: 0.5 }), black: M(0x23272c, { roughness: 0.6 }), cobot: M(0xf0f2f4, { roughness: 0.35 }),
+  cabinet: M(0xd6dade, { roughness: 0.5 }), screen: M(0x0f1a24, { roughness: 0.2, emissive: 0x15324f, emissiveIntensity: 0.6 }),
+  fence: new THREE.MeshStandardMaterial({ color: 0x2c3237, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false }),
+  tape: M(0x8a6636, { roughness: 0.4 }), foam: M(0x1e1e1e, { roughness: 0.95 }), red: M(0xb8322a, { roughness: 0.5 }),
+  skin: M(0xd7a67e), shirtGIS: M(0x2d5ea8), gown: M(0xf3f5f7), pants: M(0x3a4049), vest: M(0xf08a24), capW: M(0xffffff), capY: M(0xf2c21b),
+  chair: M(0x4a5560), glassRed: new THREE.MeshBasicMaterial({ color: 0xff2e2e, transparent: true, opacity: 0.13, side: THREE.DoubleSide, depthWrite: false }),
+};
+const BOXG = new THREE.BoxGeometry(1, 1, 1), SPH = new THREE.SphereGeometry(1, 18, 12), CYL = new THREE.CylinderGeometry(1, 1, 1, 18);
+const UP = new THREE.Vector3(0, 1, 0);
+
+function box(x1, y1, x2, y2, z1, z2, m, parent = scene, cast = true) {
+  const o = new THREE.Mesh(BOXG, m);
+  o.scale.set(Math.abs(x2 - x1) / 1000, z2 - z1, Math.abs(y2 - y1) / 1000);
+  o.position.set(wx((x1 + x2) / 2), (z1 + z2) / 2, wz((y1 + y2) / 2));
+  o.castShadow = cast; o.receiveShadow = true; parent.add(o); return o;
+}
+function lbox(w, h, d, m, x = 0, y = 0, z = 0, parent = null) {
+  const o = new THREE.Mesh(BOXG, m); o.scale.set(w, h, d); o.position.set(x, y, z);
+  o.castShadow = true; o.receiveShadow = true; if (parent) parent.add(o); return o;
+}
+function cyl(r, m) { const o = new THREE.Mesh(CYL, m); o.scale.set(r, 1, r); o.castShadow = true; return o; }
+function setBetween(o, a, b) {
+  const d = new THREE.Vector3().subVectors(b, a); const L = d.length();
+  o.position.copy(a).addScaledVector(d, 0.5); o.scale.y = Math.max(L, 1e-4);
+  if (L > 1e-6) o.quaternion.setFromUnitVectors(UP, d.normalize());
+}
+function label(text, X, Y, h, cls = '', parent = scene) {
+  const el = document.createElement('div'); el.className = 'lbl ' + cls; el.innerHTML = text;
+  const o = new CSS2DObject(el); o.position.copy(V(X, Y, h)); parent.add(o); return el;
+}
+
+/* ---------------- lantai, grid, marking ---------------- */
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), mat.ground);
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.01; ground.receiveShadow = true; scene.add(ground);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(10.1, 6.35), mat.floor);
+floor.rotation.x = -Math.PI / 2; floor.position.set(wx(4350), 0, wz(2925)); floor.receiveShadow = true; scene.add(floor);
+const gridPts = [];
+for (let X = -700; X <= 9400; X += 1000) gridPts.push(V(X, -250, 0.002), V(X, 6100, 0.002));
+for (let Y = 0; Y <= 6100; Y += 1000) gridPts.push(V(-700, Y, 0.002), V(9400, Y, 0.002));
+const gridMat = new THREE.LineBasicMaterial({ color: 0x9aa4ae, transparent: true, opacity: 0.35 });
+scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(gridPts), gridMat));
+
+function flat(x1, y1, x2, y2, color, op, h = 0.003, parent = scene) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(x2 - x1) / 1000, Math.abs(y2 - y1) / 1000),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.set(wx((x1 + x2) / 2), h, wz((y1 + y2) / 2)); parent.add(m); return m;
+}
+const zones = new THREE.Group(); scene.add(zones);
+flat(4420, 30, 7225, 2570, 0x1f5fbf, 0.10, 0.003, zones);                 // M1
+flat(700, 4385, 7390, 5840, 0xd2661e, 0.10, 0.003, zones);                // M2 sel pallet
+flat(6440, 2585, 7250, 4385, 0xd2661e, 0.10, 0.003, zones);               // M2 conveyor
+flat(7225, 0, 8700, 5852, 0x2e8b57, 0.10, 0.003, zones);                  // zona bebas 1510
+flat(678, 3150, 6440, 4330, 0xe2b400, 0.07, 0.003, zones);                // lorong handlift
+flat(6420, 2570, 7280, 2600, 0xe6007e, 0.9, 0.004, scene);                // garis titik serah
+for (const [y1, y2] of [[3130, 3170], [4330, 4370]]) flat(678, y1, 6440, y2, 0xe2b400, 0.85, 0.004, zones);
+// rute handlift (putus-putus)
+const route = [[300, 3750], [5950, 3750], [6250, 3600], [7750, 3600], [7750, 1500], [9300, 1500]];
+for (let i = 0; i < route.length - 1; i++) {
+  const [xa, ya] = route[i], [xb, yb] = route[i + 1]; const L = Math.hypot(xb - xa, yb - ya); const n = Math.floor(L / 300);
+  for (let k = 0; k < n; k++) {
+    const t0 = k / n, t1 = (k + 0.55) / n; const ax = xa + (xb - xa) * t0, ay = ya + (yb - ya) * t0, bx = xa + (xb - xa) * t1, by = ya + (yb - ya) * t1;
+    const seg = new THREE.Mesh(BOXG, new THREE.MeshBasicMaterial({ color: 0x2e7d32, transparent: true, opacity: 0.75 }));
+    seg.position.copy(V((ax + bx) / 2, (ay + by) / 2, 0.004)); seg.scale.set(Math.max(Math.abs(bx - ax), 40) / 1000, 0.001, Math.max(Math.abs(by - ay), 40) / 1000);
+    zones.add(seg);
+  }
+}
+
+/* ---------------- dinding (denah RFQ) ---------------- */
+const walls = [];
+const wallRects = [
+  [-700, -250, 8700, 0], [5255, -420, 5725, 0], [8270, -420, 8700, 0],
+  [8700, -250, 8820, 450], [8700, 2600, 8820, 2870], [8700, 5370, 8820, 5852],
+  [8820, 2650, 9400, 2790], [8820, -250, 9400, 0], [8820, 5852, 9400, 6100],
+  [490, 5852, 8700, 6100], [5187, 5468, 5791, 6100], [8207, 5468, 8700, 6100],
+  [-700, 4421, 678, 4657], [490, 4657, 678, 5852],
+];
+for (const r of wallRects) walls.push(box(r[0], r[1], r[2], r[3], 0, 1, mat.wall));
+function setWallH(h) { for (const w of walls) { w.scale.y = h; w.position.y = h / 2; } }
+setWallH(0.45);
+// kusen pintu MAL OUT / MAL IN
+for (const [y1, y2] of [[450, 2600], [2870, 5370]]) { box(8700, y1, 8820, y1 + 40, 0, 2.2, mat.existDark); box(8700, y2 - 40, 8820, y2, 0, 2.2, mat.existDark); }
+
+/* ---------------- konveyor (helper) ---------------- */
+function rollerSet(parent, n, place, len, axis) {
+  const g = new THREE.CylinderGeometry(0.024, 0.024, len, 12);
+  if (axis === 'z') g.rotateX(Math.PI / 2); else g.rotateZ(Math.PI / 2);
+  const im = new THREE.InstancedMesh(g, mat.roller, n); const m4 = new THREE.Matrix4();
+  for (let i = 0; i < n; i++) { const p = place(i); m4.makeTranslation(p.x, p.y, p.z); im.setMatrixAt(i, m4); }
+  im.receiveShadow = true; parent.add(im); return im;
+}
+function legs(x1, y1, x2, y2, top, m, alongX) {
+  const L = alongX ? x2 - x1 : y2 - y1; const n = Math.max(2, Math.ceil(L / 1400) + 1);
+  for (let i = 0; i < n; i++) {
+    const s = 40 + (L - 80) * i / (n - 1);
+    if (alongX) { box(x1 + s - 20, y1, x1 + s + 20, y1 + 40, 0, top - 0.1, m); box(x1 + s - 20, y2 - 40, x1 + s + 20, y2, 0, top - 0.1, m); }
+    else { box(x1, y1 + s - 20, x1 + 40, y1 + s + 20, 0, top - 0.1, m); box(x2 - 40, y1 + s - 20, x2, y1 + s + 20, 0, top - 0.1, m); }
+  }
+}
+function rollerConv(x1, y1, x2, y2, top, frameM, alongX, withLegs = true) {
+  if (alongX) { box(x1, y1, x2, y1 + 40, top - 0.1, top + 0.015, frameM); box(x1, y2 - 40, x2, y2, top - 0.1, top + 0.015, frameM); }
+  else { box(x1, y1, x1 + 40, y2, top - 0.1, top + 0.015, frameM); box(x2 - 40, y1, x2, y2, top - 0.1, top + 0.015, frameM); }
+  const L = alongX ? x2 - x1 : y2 - y1, W = (alongX ? y2 - y1 : x2 - x1) - 80; const n = Math.floor(L / 100);
+  rollerSet(scene, n, i => alongX ? V(x1 + (i + 0.5) * L / n, (y1 + y2) / 2, top - 0.024) : V((x1 + x2) / 2, y1 + (i + 0.5) * L / n, top - 0.024), W / 1000, alongX ? 'z' : 'x');
+  if (withLegs) legs(x1, y1, x2, y2, top, frameM, alongX);
+}
+function beltConv(x1, y1, x2, y2, top, frameM, beltM) {
+  box(x1, y1, x2, y1 + 35, top - 0.12, top + 0.025, frameM); box(x1, y2 - 35, x2, y2, top - 0.12, top + 0.025, frameM);
+  box(x1, y1 + 35, x2, y2 - 35, top - 0.04, top, beltM);
+  legs(x1, y1, x2, y2, top, frameM, true);
+}
+
+/* ---------------- existing (RFQ) ---------------- */
+box(-700, 1420, 0, 2600, 0, 1.8, mat.exist); box(-650, 1480, -40, 2540, 1.8, 1.86, mat.existDark);
+box(-60, 1700, 0, 2300, 0.9, 1.5, mat.screen);
+beltConv(0, 2072, 4402, 2295, 0.85, mat.existDark, mat.belt);
+box(3214, 1990, 3375, 2050, 0, 1.4, mat.exist); box(3214, 2317, 3375, 2377, 0, 1.4, mat.exist); box(3214, 1990, 3375, 2377, 1.32, 1.42, mat.exist);
+box(3240, 2050, 3350, 2070, 0.9, 1.1, mat.red);
+for (const [ya, yb] of [[1775, 2072], [2295, 2585]]) {
+  box(356, ya, 3214, yb, 0.76, 0.8, mat.stainless);
+  for (const x of [400, 1800, 3170]) for (const y of [ya + 30, yb - 30]) box(x - 20, y - 20, x + 20, y + 20, 0, 0.76, mat.stainless);
+}
+flat(3375, 2585, 4402, 3390, 0x2e8b57, 0.12, 0.003, zones);
+
+/* ---------------- orang ---------------- */
+function makePerson(shirt, { seated = false, cap = null, parent = scene } = {}) {
+  const g = new THREE.Group(); const hip = seated ? 0.47 : 0.86;
+  const legL = new THREE.Group(), legR = new THREE.Group(); legL.position.set(0, hip, 0.09); legR.position.set(0, hip, -0.09);
+  if (!seated) { lbox(0.12, 0.84, 0.13, mat.pants, 0, -0.42, 0, legL); lbox(0.12, 0.84, 0.13, mat.pants, 0, -0.42, 0, legR); }
+  else { for (const L of [legL, legR]) { lbox(0.44, 0.12, 0.13, mat.pants, 0.2, 0, 0, L); lbox(0.12, 0.46, 0.12, mat.pants, 0.42, -0.23, 0, L); } }
+  g.add(legL, legR);
+  lbox(0.22, 0.58, 0.38, shirt, 0, hip + 0.3, 0, g);
+  const head = new THREE.Mesh(SPH, mat.skin); head.scale.setScalar(0.105); head.position.set(0.01, hip + 0.73, 0); head.castShadow = true; g.add(head);
+  if (cap) { const c = new THREE.Mesh(SPH, cap); c.scale.set(0.115, 0.065, 0.115); c.position.set(0.01, hip + 0.79, 0); g.add(c); }
+  const armL = new THREE.Group(), armR = new THREE.Group(); armL.position.set(0, hip + 0.55, 0.235); armR.position.set(0, hip + 0.55, -0.235);
+  lbox(0.09, 0.55, 0.09, shirt, 0, -0.27, 0, armL); lbox(0.09, 0.55, 0.09, shirt, 0, -0.27, 0, armR); g.add(armL, armR);
+  parent.add(g);
+  return { g, legL, legR, armL, armR, X: 0, Y: 0, yaw: 0, phase: 0, seated, reach: seated ? 1.05 : 0, work: false };
+}
+function placePerson(p) {
+  p.g.position.copy(V(p.X, p.Y, 0)); p.g.rotation.y = -p.yaw * DEG;
+  const s = Math.sin(p.phase) * 0.45;
+  const w = p.work ? Math.sin(sim.t * 7 + p.X) * 0.25 : 0;
+  if (!p.seated) { p.legL.rotation.z = s; p.legR.rotation.z = -s; }
+  p.armL.rotation.z = -s * 0.6 + p.reach + w; p.armR.rotation.z = s * 0.6 + p.reach - w;
+}
+function chair(X, Y) { box(X - 210, Y - 210, X + 210, Y + 210, 0.42, 0.46, mat.chair); box(X - 25, Y - 25, X + 25, Y + 25, 0, 0.42, mat.existDark); }
+const seated = [];
+for (const x of [705, 1476, 2281, 3053]) {
+  for (const [y, yaw] of [[1418, 90], [2950, 270]]) {
+    chair(x, y); const p = makePerson(mat.gown, { seated: true, cap: mat.capW }); p.X = x; p.Y = y; p.yaw = yaw;
+    box(x - 30, y + (yaw === 90 ? -230 : 190), x + 30, y + (yaw === 90 ? -190 : 230), 0.46, 0.95, mat.chair);
+    seated.push(p);
+  }
+}
+
+/* ---------------- tekstur karton & label ---------------- */
+const SKU = { PLCF: { code: 'PLCF', color: '#1d8a8a' }, PLFB: { code: 'PLFB', color: '#7a4bb0' } };
+function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
+for (const s of Object.values(SKU)) {
+  s.mat = new THREE.MeshStandardMaterial({ roughness: 0.65, map: canvasTex(256, 128, x => {
+    x.fillStyle = '#f6f6f2'; x.fillRect(0, 0, 256, 128); x.fillStyle = s.color; x.fillRect(0, 40, 256, 46);
+    x.fillStyle = '#fff'; x.font = 'bold 30px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(s.code, 128, 64);
+  }) });
+}
+const labelCache = {};
+function labelMat(b) {
+  if (labelCache[b.id]) return labelCache[b.id];
+  const m = new THREE.MeshBasicMaterial({ map: canvasTex(256, 160, x => {
+    x.fillStyle = '#fff'; x.fillRect(0, 0, 256, 160); x.fillStyle = b.sku.color; x.fillRect(0, 0, 256, 34);
+    x.fillStyle = '#fff'; x.font = 'bold 24px sans-serif'; x.fillText(b.sku.code, 10, 26);
+    x.fillStyle = '#111'; x.font = 'bold 30px monospace'; x.fillText(b.id, 10, 74);
+    let xx = 12; let seed = b.n * 9301 + 49297; for (let i = 0; i < 46; i++) { seed = (seed * 9301 + 49297) % 233280; const w = 1 + (seed % 4); x.fillRect(xx, 92, w, 52); xx += w + 2; if (xx > 240) break; }
+  }) });
+  return (labelCache[b.id] = m);
+}
+const CARTON = new THREE.BoxGeometry(0.115, 0.06, 0.104);
+function makeCarton(b) { const o = new THREE.Mesh(CARTON, b.sku.mat); o.castShadow = true; scene.add(o); return { obj: o, len: 115, dz: 0.03, batch: b, last: false }; }
+
+/* ---------------- shipper 591×432×387 ---------------- */
+const SH = { Lx: 0.591, Lz: 0.432, H: 0.387 };
+const TAPE = new THREE.BoxGeometry(1, 1, 1);
+function makeShipper() {
+  const g = new THREE.Group(); const T = 0.005, { Lx, Lz, H } = SH;
+  const walls = new THREE.Group(); g.add(walls);
+  lbox(Lx, T, Lz, mat.kraft, 0, T / 2, 0, walls);
+  lbox(T, H, Lz, mat.kraft, Lx / 2 - T / 2, H / 2, 0, walls); lbox(T, H, Lz, mat.kraft, -Lx / 2 + T / 2, H / 2, 0, walls);
+  lbox(Lx, H, T, mat.kraft, 0, H / 2, Lz / 2 - T / 2, walls); lbox(Lx, H, T, mat.kraft, 0, H / 2, -Lz / 2 + T / 2, walls);
+  const flaps = [];
+  for (const s of [1, -1]) {
+    const pv = new THREE.Group(); pv.position.set(0, H, s * Lz / 2); lbox(Lx - 0.006, 0.003, Lz / 2, mat.kraftDark, 0, 0.003, -s * Lz / 4, pv);
+    pv.userData = { ax: 'x', open: s * 110 * DEG, long: true }; g.add(pv); flaps.push(pv);
+    const pv2 = new THREE.Group(); pv2.position.set(s * Lx / 2, H, 0); lbox(0.2, 0.003, Lz - 0.008, mat.kraft, -s * 0.1, 0, 0, pv2);
+    pv2.userData = { ax: 'z', open: -s * 110 * DEG, long: false }; g.add(pv2); flaps.push(pv2);
+  }
+  const tape = new THREE.Mesh(TAPE, mat.tape); tape.scale.set(0.64, 0.003, 0.05); tape.position.set(0, H + 0.007, 0); tape.visible = false; g.add(tape);
+  const tapeE = lbox(0.003, 0.08, 0.05, mat.tape, Lx / 2 + 0.002, H - 0.04, 0, g); const tapeW = lbox(0.003, 0.08, 0.05, mat.tape, -Lx / 2 - 0.002, H - 0.04, 0, g);
+  tapeE.visible = tapeW.visible = false;
+  const lab = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.1), mat.kraft); lab.position.set(0.15, 0.24, Lz / 2 + 0.003); lab.visible = false; g.add(lab);
+  const lab2 = lab.clone(); lab2.rotation.y = Math.PI / 2; lab2.position.set(Lx / 2 + 0.003, 0.24, 0.08); g.add(lab2);
+  const contents = new THREE.Group(); g.add(contents);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  scene.add(g);
+  const it = { obj: g, flaps, tape, tapes: [tapeE, tapeW], labs: [lab, lab2], contents, len: 591, s: 0, rows: 0, full: false, taped: false, batch: null, last: false };
+  setFlaps(it, 1); return it;
+}
+function setFlaps(it, f) {
+  const p = 1 - f;
+  for (const pv of it.flaps) {
+    const fr = pv.userData.long ? 1 - Math.min(1, Math.max(0, p * 2 - 1)) : 1 - Math.min(1, p * 2);
+    pv.rotation[pv.userData.ax] = pv.userData.open * fr;
+  }
+}
+const CX = [-0.23, -0.115, 0, 0.115, 0.23], CZ = [-0.156, -0.052, 0.052, 0.156];
+function closeShipper(it, b) {
+  setFlaps(it, 0); it.tape.visible = true; it.tape.scale.x = 0.64; for (const t of it.tapes) t.visible = true;
+  for (const l of it.labs) { l.material = labelMat(b); l.visible = true; }
+  for (const c of [...it.contents.children]) it.contents.remove(c);
+  it.taped = true; it.batch = b;
+}
+
+/* ---------------- pallet 1200×1000×160 ---------------- */
+function makePallet() {
+  const g = new THREE.Group();
+  for (const x of [-0.525, 0, 0.525]) {
+    lbox(0.145, 0.022, 1.0, mat.woodDark, x, 0.011, 0, g);
+    for (const z of [-0.45, 0, 0.45]) lbox(0.145, 0.094, 0.1, mat.woodDark, x, 0.069, z, g);
+    lbox(0.145, 0.022, 1.0, mat.wood, x, 0.127, 0, g);
+  }
+  for (let i = 0; i < 7; i++) lbox(1.2, 0.022, 0.1, mat.wood, 0, 0.149, -0.45 + i * 0.15, g);
+  scene.add(g); return g;
+}
+
+/* ============================================================
+   MODUL 1 — Robotic case packing (zona improvement 2800)
+   ============================================================ */
+// meja erect + stok shipper flat
+box(4450, 60, 5650, 660, 0.82, 0.86, mat.stainless);
+for (const x of [4490, 5610]) for (const y of [100, 620]) box(x - 20, y - 20, x + 20, y + 20, 0, 0.82, mat.stainless);
+for (let k = 0; k < 9; k++) box(4500, 110, 5250, 600, 0.86 + k * 0.008, 0.866 + k * 0.008, k % 2 ? mat.kraft : mat.kraftDark);
+// panel M1
+box(6250, 60, 7000, 400, 0, 1.9, mat.cabinet); box(6250, 400, 7000, 412, 1.75, 1.9, mat.m1); box(6450, 400, 6800, 410, 1.2, 1.5, mat.screen);
+// konveyor shipper (buffer + station) 4450..6500 × 850..1400
+rollerConv(4450, 850, 6500, 1400, 0.75, mat.m1, true);
+box(5755, 1400, 6346, 1440, 0.75, 0.98, mat.m1Light);                     // guide tetap
+const clamp = box(5850, 770, 6250, 850, 0.76, 0.96, mat.m1Light);          // squaring clamp
+const stopL1 = box(6350, 860, 6400, 1390, 0.62, 0.8, mat.m1);              // stopper
+for (const [x, y] of [[5700, 880], [5700, 1370], [6400, 880], [6400, 1370]]) box(x - 20, y - 20, x + 20, y + 20, 0.75, 1.2, mat.m1Light); // flap holder
+// right-angle transfer 6500..7200 × 780..1470
+rollerConv(6500, 780, 7200, 1470, 0.75, mat.m1, true);
+for (let i = 0; i < 4; i++) box(6560 + i * 170, 790, 6600 + i * 170, 1460, 0.735, 0.752, mat.belt);
+// konveyor turun (tutup/taping) 6500..7200 × 1470..2585
+rollerConv(6500, 1470, 7200, 2585, 0.75, mat.m1, false);
+// konveyor karton M1 4402..5850 + row former
+beltConv(4402, 2050, 5850, 2320, 0.85, mat.m1, mat.belt);
+box(4402, 2105, 5850, 2120, 0.86, 0.92, mat.m1Light); box(4402, 2250, 5850, 2265, 0.86, 0.92, mat.m1Light);
+box(5180, 1960, 5240, 2050, 0.85, 0.98, mat.m1);
+const escPin = box(5195, 2040, 5225, 2125, 0.88, 0.91, mat.black);
+box(5850, 2070, 5930, 2300, 0.82, 0.97, mat.m1);
+// pedestal cobot + scanner
+box(5800, 1500, 6300, 2000, 0, 0.66, mat.existDark); box(5780, 1480, 6320, 2020, 0.66, 0.70, mat.m1);
+box(5700, 2000, 5800, 2090, 0, 0.18, mat.yellow);
+const scanZone = flat(5150, 700, 6450, 2250, 0xff3030, 0.06, 0.005, scene);
+{ const p = [V(5150, 700, 0.006), V(6450, 700, 0.006), V(6450, 2250, 0.006), V(5150, 2250, 0.006), V(5150, 700, 0.006)];
+  const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(p), new THREE.LineDashedMaterial({ color: 0xd0021b, dashSize: 0.08, gapSize: 0.06 }));
+  ln.computeLineDistances(); scene.add(ln); }
+
+/* ---------------- cobot (visual IK 2-link) ---------------- */
+const CB = { S: V(6050, 1750, 0.93), L1: 0.612, L2: 0.572, tool: V(5562.5, 2185, 1.25), status: 'Siaga', busy: false, busyT: 0, speed: 1 };
+const turret = new THREE.Group(); turret.position.copy(V(6050, 1750, 0.70)); scene.add(turret);
+{ const b = cyl(0.095, mat.cobot); b.scale.y = 0.16; b.position.y = 0.08; turret.add(b); const c = cyl(0.1, mat.m1); c.scale.y = 0.03; c.position.y = 0.17; turret.add(c); }
+const upper = cyl(0.058, mat.cobot), fore = cyl(0.047, mat.cobot), wrist = cyl(0.04, mat.cobot);
+const jS = new THREE.Mesh(SPH, mat.m1), jE = new THREE.Mesh(SPH, mat.m1), jW = new THREE.Mesh(SPH, mat.m1);
+jS.scale.setScalar(0.08); jE.scale.setScalar(0.065); jW.scale.setScalar(0.052);
+scene.add(upper, fore, wrist, jS, jE, jW);
+const cGrip = new THREE.Group(); scene.add(cGrip);
+lbox(0.60, 0.028, 0.13, mat.m1, 0, 0.062, 0, cGrip); lbox(0.08, 0.04, 0.08, mat.existDark, 0, 0.095, 0, cGrip);
+for (let i = 0; i < 5; i++) for (const dz of [-0.025, 0.025]) { const s = cyl(0.016, mat.black); s.scale.y = 0.045; s.position.set(CX[i], 0.026, dz); cGrip.add(s); }
+const cVac = [];
+function updateCobot() {
+  const T = CB.tool; cGrip.position.copy(T);
+  const F = T.clone(); F.y += 0.115; const W = F.clone(); W.y += 0.10;
+  const S = CB.S; const dx = W.x - S.x, dz = W.z - S.z; const d = Math.max(1e-4, Math.hypot(dx, dz)); const h = W.y - S.y;
+  const r = Math.min(Math.hypot(d, h), CB.L1 + CB.L2 - 1e-3);
+  const a = Math.atan2(h, d) + Math.acos(Math.min(1, (CB.L1 ** 2 + r * r - CB.L2 ** 2) / (2 * CB.L1 * r)));
+  const ux = dx / d, uz = dz / d;
+  const E = new THREE.Vector3(S.x + ux * CB.L1 * Math.cos(a), S.y + CB.L1 * Math.sin(a), S.z + uz * CB.L1 * Math.cos(a));
+  turret.rotation.y = Math.atan2(-uz, ux);
+  setBetween(upper, S, E); setBetween(fore, E, W); setBetween(wrist, W, F);
+  jS.position.copy(S); jE.position.copy(E); jW.position.copy(W);
+}
+
+/* ---------------- operator M1 ---------------- */
+const opA = makePerson(mat.shirtGIS, { cap: mat.capY }); Object.assign(opA, { X: 5850, Y: 380, yaw: 180 });
+const opB = makePerson(mat.shirtGIS, { cap: mat.capY }); Object.assign(opB, { X: 6280, Y: 2380, yaw: 0 });
+const OPB = { status: 'Siaga' };
+
+/* ============================================================
+   MODUL 2 — Gantry palletizing di posisi pallet RFQ
+   ============================================================ */
+// konveyor transfer M2: 2585..2950 tetap, 2950..4250 gate, 4250..5050 tetap (pick)
+rollerConv(6500, 2585, 7200, 2950, 0.75, mat.m2, false);
+rollerConv(6500, 4250, 7200, 5050, 0.75, mat.m2, false);
+box(6500, 5050, 7200, 5110, 0.7, 0.88, mat.m2);                             // stopper pick
+box(6440, 4450, 6500, 5000, 0.75, 0.9, mat.m2Light); box(7200, 4450, 7260, 5000, 0.75, 0.9, mat.m2Light);
+box(6470, 4240, 7230, 4260, 0, 0.64, mat.m2);                               // tumpuan ujung gate
+// gate (lift-up), engsel di Y 2950
+const gatePivot = new THREE.Group(); gatePivot.position.copy(V(6850, 2950, 0.75)); scene.add(gatePivot);
+{ const L = 1.3;
+  lbox(0.04, 0.115, L, mat.m2, -0.33, -0.042, L / 2, gatePivot); lbox(0.04, 0.115, L, mat.m2, 0.33, -0.042, L / 2, gatePivot);
+  rollerSet(gatePivot, 13, i => new THREE.Vector3(0, -0.024, (i + 0.5) * L / 13), 0.62, 'x');
+  const hinge = cyl(0.03, mat.black); hinge.rotation.z = Math.PI / 2; hinge.scale.y = 0.72; hinge.position.set(0, -0.03, 0); gatePivot.add(hinge); }
+box(6470, 2930, 6510, 2970, 0, 0.72, mat.m2); box(7190, 2930, 7230, 2970, 0, 0.72, mat.m2);
+const beacon = new THREE.Mesh(CYL, new THREE.MeshStandardMaterial({ color: 0xffa200, emissive: 0xff8a00, emissiveIntensity: 0 }));
+beacon.scale.set(0.045, 0.09, 0.045); beacon.position.copy(V(7210, 2950, 0.77)); scene.add(beacon);
+const gate = { state: 'DOWN', ang: 0, requests: 0 };
+function applyGate() { gatePivot.rotation.x = -gate.ang * DEG; }
+// barcode scanner
+box(7300, 4650, 7350, 4700, 0, 1.0, mat.existDark); box(7270, 4630, 7380, 4720, 1.0, 1.08, mat.black);
+const laser = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.004), new THREE.MeshBasicMaterial({ color: 0xff2020 }));
+laser.rotation.y = Math.PI / 2; laser.position.copy(V(7230, 4675, 0.98)); laser.visible = false; scene.add(laser);
+// panel M2
+box(7500, 5450, 8150, 5800, 0, 1.9, mat.cabinet); box(7500, 5438, 8150, 5450, 1.75, 1.9, mat.m2); box(7650, 5440, 8000, 5450, 1.2, 1.5, mat.screen);
+
+// pallet station (PS1/PS2 digeser ke Y 4388 agar sejajar PS3/PS4 — rel selatan bebas dari kolom H)
+const ST = [
+  { id: 'PS1', cx: 1355, op: [760, 2040] }, { id: 'PS2', cx: 2855, op: [2170, 3545] },
+  { id: 'PS3', cx: 4362, op: [3670, 5055] }, { id: 'PS4', cx: 5864, op: [5180, 6440] },
+].map(s => ({ ...s, cy: 4894, state: 'EMPTY', count: 0, batch: null, pallet: null, ships: [] }));
+const FY = 4385, RY2 = 5360;
+for (const s of ST) {
+  const x1 = s.cx - 600, x2 = s.cx + 600, y1 = s.cy - 500, y2 = s.cy + 500;
+  for (const [x, y, sx, sy] of [[x1, y1, 1, 1], [x2, y1, -1, 1], [x1, y2, 1, -1], [x2, y2, -1, -1]]) {
+    box(Math.min(x - sx * 40, x + sx * 220), Math.min(y - sy * 40, y - sy * 0), Math.max(x - sx * 40, x + sx * 220), Math.max(y - sy * 40, y - sy * 0) + 0, 0, 0.07, mat.m2);
+    box(Math.min(x - sx * 40, x), Math.min(y - sy * 40, y + sy * 220), Math.max(x - sx * 40, x), Math.max(y - sy * 40, y + sy * 220), 0, 0.07, mat.m2);
+  }
+  // light curtain + lampu status
+  const [o1, o2] = s.op;
+  box(o1 + 10, FY - 30, o1 + 60, FY + 30, 0, 1.5, mat.yellow); box(o2 - 60, FY - 30, o2 - 10, FY + 30, 0, 1.5, mat.yellow);
+  const beam = new THREE.Mesh(new THREE.PlaneGeometry((o2 - o1 - 70) / 1000, 1.35), mat.glassRed.clone());
+  beam.position.copy(V((o1 + o2) / 2, FY, 0.78)); scene.add(beam); s.beam = beam;
+  const lamp = new THREE.Mesh(CYL, new THREE.MeshStandardMaterial({ color: 0x888888, emissive: 0x000000 }));
+  lamp.scale.set(0.035, 0.12, 0.035); lamp.position.copy(V(o1 + 35, FY, 1.58)); scene.add(lamp); s.lamp = lamp;
+  s.lblEl = label(`<b>${s.id}</b><span class="st"></span>`, s.cx, FY - 120, 1.75, 'm2');
+  s.pallet = makePallet(); s.pallet.position.copy(V(s.cx, s.cy, 0));
+}
+function slotPos(s, n) { const lay = n >> 2, k = n & 3; return { X: s.cx + (k & 1 ? 295.5 : -295.5), Y: s.cy + (k & 2 ? 216 : -216), z: 0.16 + lay * SH.H }; }
+
+// pagar
+const fenceSegs = [[678, 760], [2040, 2170], [3545, 3670], [5055, 5180], [6440, 6470], [7230, 7390]];
+function fencePanel(x1, y1, x2, y2) {
+  const L = Math.hypot(x2 - x1, y2 - y1) / 1000; const p = new THREE.Mesh(new THREE.PlaneGeometry(L, 1.85), mat.fence);
+  p.position.copy(V((x1 + x2) / 2, (y1 + y2) / 2, 0.15 + 0.925)); p.rotation.y = x1 === x2 ? Math.PI / 2 : 0; scene.add(p);
+  box(Math.min(x1, x2) - 20, Math.min(y1, y2) - 20, Math.max(x1, x2) + 20, Math.max(y1, y2) + 20, 1.98, 2.02, mat.yellow);
+  for (const [x, y] of [[x1, y1], [x2, y2]]) box(x - 25, y - 25, x + 25, y + 25, 0, 2.0, mat.yellow);
+}
+for (const [a, b] of fenceSegs) fencePanel(a, FY, b, FY);
+fencePanel(7390, FY, 7390, 5852);
+box(6470, FY - 25, 6520, FY + 25, 0, 2.0, mat.yellow); box(7180, FY - 25, 7230, FY + 25, 0, 2.0, mat.yellow);
+box(6470, FY - 25, 7230, FY + 25, 1.32, 1.4, mat.yellow);
+{ const p = new THREE.Mesh(new THREE.PlaneGeometry(0.76, 0.6), mat.fence); p.position.copy(V(6850, FY, 1.7)); scene.add(p); }
+
+// struktur gantry (oranye): kolom di celah antar pallet, rel Y 4385 & Y 5360
+const GCOL = [740, 2104, 3607, 5116, 7330];
+for (const x of GCOL) for (const y of [FY, RY2]) { box(x - 60, y - 60, x + 60, y + 60, 0, 2.55, mat.m2); box(x - 110, y - 110, x + 110, y + 110, 0, 0.015, mat.existDark); }
+for (const y of [FY, RY2]) box(680, y - 80, 7390, y + 80, 2.55, 2.73, mat.m2);
+for (const x of [740, 7330]) box(x - 60, FY, x + 60, RY2, 2.58, 2.70, mat.m2);
+const GT = { X: 6850, Y: 4820, Z: 1.40, status: 'Siaga', busy: false, busyT: 0 };
+const bridge = new THREE.Group(); scene.add(bridge);
+lbox(0.14, 0.16, (RY2 - FY + 200) / 1000, mat.m2, 0, 2.81, 0, bridge);
+lbox(0.30, 0.12, 0.22, mat.existDark, 0, 2.79, wz(FY) - wz((FY + RY2) / 2), bridge);
+lbox(0.30, 0.12, 0.22, mat.existDark, 0, 2.79, wz(RY2) - wz((FY + RY2) / 2), bridge);
+const carriage = new THREE.Group(); scene.add(carriage);
+lbox(0.32, 0.24, 0.30, mat.existDark, 0, 2.80, 0, carriage); lbox(0.16, 1.25, 0.16, mat.m2, 0, 2.275, 0, carriage);
+const rod = lbox(0.10, 1.35, 0.10, mat.stainless); scene.add(rod);
+const gGrip = new THREE.Group(); scene.add(gGrip);
+lbox(0.62, 0.10, 0.46, mat.m2, 0, 0.08, 0, gGrip); lbox(0.60, 0.03, 0.44, mat.foam, 0, 0.015, 0, gGrip); lbox(0.2, 0.08, 0.14, mat.existDark, 0.12, 0.17, 0, gGrip);
+function updateGantry() {
+  bridge.position.set(wx(GT.X), 0, wz((FY + RY2) / 2));
+  carriage.position.set(wx(GT.X), 0, wz(GT.Y));
+  gGrip.position.set(wx(GT.X), GT.Z, wz(GT.Y));
+  rod.position.set(wx(GT.X), GT.Z + 0.13 + 0.675, wz(GT.Y));
+}
+
+/* ---------------- handlift + operator gudang ---------------- */
+const HL = { g: new THREE.Group(), lift: new THREE.Group(), X: 300, Y: 3750, th: 0, h: 0, status: 'Siaga', walk: 0, op: null };
+scene.add(HL.g); HL.g.add(HL.lift);
+lbox(1.15, 0.05, 0.16, mat.red, 0, 0.055, 0.27, HL.lift); lbox(1.15, 0.05, 0.16, mat.red, 0, 0.055, -0.27, HL.lift);
+lbox(0.26, 0.40, 0.68, mat.red, -0.705, 0.23, 0, HL.lift);
+{ const hd = cyl(0.022, mat.black); setBetween(hd, new THREE.Vector3(-0.72, 0.42, 0), new THREE.Vector3(-1.0, 1.02, 0)); HL.lift.add(hd);
+  const gr = cyl(0.02, mat.black); gr.rotation.x = Math.PI / 2; gr.scale.y = 0.28; gr.position.set(-1.0, 1.02, 0); HL.lift.add(gr);
+  for (const z of [0.27, -0.27]) { const w = cyl(0.04, mat.black); w.rotation.x = Math.PI / 2; w.scale.y = 0.07; w.position.set(0.5, 0.04, z); HL.g.add(w); }
+  const w2 = cyl(0.09, mat.black); w2.rotation.x = Math.PI / 2; w2.scale.y = 0.1; w2.position.set(-0.7, 0.09, 0); HL.g.add(w2); }
+HL.op = makePerson(mat.vest, { cap: mat.capY, parent: HL.g }); HL.op.g.position.set(-1.28, 0, 0.0);
+function updateHL() {
+  HL.g.position.copy(V(HL.X, HL.Y, 0)); HL.g.rotation.y = -HL.th * DEG; HL.lift.position.y = HL.h;
+  const s = Math.sin(HL.walk) * 0.45; HL.op.legL.rotation.z = s; HL.op.legR.rotation.z = -s; HL.op.armL.rotation.z = HL.op.armR.rotation.z = 1.0;
+}
+HL.g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+
+/* ============================================================
+   Label
+   ============================================================ */
+label('Modul 1 — robotic case packing', 4500, 150, 2.4, 'm1 big');
+label('Modul 2 — gantry palletizing', 1300, FY, 3.15, 'm2 big');
+label('Cartoner (existing)', -350, 2010, 2.05);
+label('Blister → karton · 8 operator (existing)', 1800, 2183, 1.55);
+label('Carton check + reject (existing)', 3295, 2183, 1.7);
+label('Row former 5 karton', 5560, 2185, 1.15, 'm1');
+label('Cobot ±10 kg · gripper 5 zona', 6050, 1750, 2.0, 'm1');
+label('Station shipper', 6050, 1125, 1.45, 'm1');
+label('OP-M1 Pos A · erect shipper', 5450, 360, 2.1, 'm1');
+label('OP-M1 Pos B · tutup, taping, label', 6450, 2250, 2.1, 'm1');
+label('Panel M1', 6625, 230, 2.15, 'm1'); label('Panel M2', 7825, 5625, 2.15, 'm2');
+label('Titik serah M1 → M2', 6850, 2585, 1.25, 'serah');
+label('Gate conveyor (lift-up)', 6850, 3600, 1.25, 'm2');
+label('Pick station + barcode', 6850, 4820, 1.55, 'm2');
+label('Gantry XYZ (overhead)', 4000, FY, 2.95, 'm2');
+label('Pintu MAL OUT', 8760, 1525, 2.4); label('Pintu MAL IN', 8760, 4120, 2.4);
+label('Zona bebas 1510', 7950, 3000, 0.05, 'floor'); label('Lorong handlift', 3000, 3750, 0.05, 'floor');
+
+/* ============================================================
+   Simulasi diskrit (detik nyata) + proses generator
+   ============================================================ */
+const sim = { t: 0, dt: 0, speed: 10, paused: false, step: 0, cartons: 0, ships: 0, pallets: 0, outPulse: 0, clearance: false };
+const procs = [];
+const tick = () => ({ tick: true }), sleep = s => ({ t: sim.t + s }), until = fn => ({ until: fn });
+function spawn(g) { procs.push({ g, wait: null }); }
+function stepProcs() {
+  for (const p of procs) {
+    if (p.dead) continue;
+    for (let i = 0; i < 60; i++) {
+      const w = p.wait;
+      if (w) { if (w.tick) { if (w.stamp === sim.step) break; } else if (w.t !== undefined) { if (sim.t < w.t) break; } else if (w.until && !w.until()) break; }
+      const r = p.g.next(); if (r.done) { p.dead = true; break; }
+      p.wait = r.value || tick(); if (p.wait.tick) p.wait.stamp = sim.step;
+    }
+  }
+}
+const easeIO = k => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+function* tween(dur, fn, clk) { let k = 0; fn(0); while (k < 1) { yield tick(); k = Math.min(1, k + sim.dt * (clk ? clk() : 1) / Math.max(dur, 1e-3)); fn(k); } }
+const logEl = document.getElementById('log'); const logs = [];
+function fmt(t) { t = Math.floor(t); const h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60; return [h, m, s].map(v => String(v).padStart(2, '0')).join(':'); }
+function log(msg) { logs.unshift({ t: sim.t, msg }); logs.length = Math.min(logs.length, 6); logEl.innerHTML = logs.map(l => `<li><time>${fmt(l.t)}</time><span>${l.msg}</span></li>`).join(''); }
+
+/* ---------------- lane (konveyor akumulasi 1D) ---------------- */
+class Lane {
+  constructor(x0, y0, x1, y1, top, speed, gap) {
+    this.a = [x0, y0]; this.L = Math.hypot(x1 - x0, y1 - y0); this.u = [(x1 - x0) / this.L, (y1 - y0) / this.L];
+    this.top = top; this.speed = speed; this.gap = gap; this.items = []; this.rule = null; this.next = null;
+  }
+  canAccept(len) { const r = this.items[this.items.length - 1]; return !r || r.s - r.len / 2 - len / 2 - this.gap >= 0; }
+  add(it, s = 0) { it.s = s; it.lane = this; this.items.push(it); this.items.sort((p, q) => q.s - p.s); this.place(it); }
+  remove(it) { const i = this.items.indexOf(it); if (i >= 0) this.items.splice(i, 1); it.lane = null; }
+  place(it) { it.obj.position.set(wx(this.a[0] + this.u[0] * it.s), this.top + (it.dz || 0), wz(this.a[1] + this.u[1] * it.s)); }
+  update(dt) {
+    const step = this.speed * 1000 * dt;
+    for (let i = 0; i < this.items.length; i++) {
+      const it = this.items[i]; let lim = this.L;
+      if (this.rule) lim = Math.min(lim, this.rule(it));
+      if (i > 0) { const p = this.items[i - 1]; lim = Math.min(lim, p.s - p.len / 2 - it.len / 2 - this.gap); }
+      const old = it.s; if (it.s < lim) it.s = Math.min(lim, it.s + step);
+      it.moving = it.s > old + 1e-6; it.prev = old; this.place(it);
+    }
+    const f = this.items[0];
+    if (f && this.next && f.s >= this.L - 0.5 && f.full !== false) {
+      const len2 = f.lenNext || f.len;
+      if (this.next.canAccept(len2)) { this.remove(f); f.len = len2; this.next.add(f, 0); }
+    }
+  }
+}
+// karton: cartoner (X 0) → stopper row former (X 5850)
+const C = new Lane(0, 2185, 5792.5, 2185, 0.85, 0.35, 0);
+const ESC = 5122.5; let escClosed = false;
+C.rule = it => (escClosed && it.s <= ESC + 0.5) ? ESC : Infinity;
+// shipper M1: buffer → station → transfer
+const L1 = new Lane(4745.5, 1125, 6850, 1125, 0.75, 0.3, 60);
+const S_ST = 6050 - 4745.5;
+L1.rule = it => it.full ? Infinity : S_ST;
+// shipper M1→M2: taping → titik serah → gate → pick
+const L2 = new Lane(6850, 1125, 6850, 4820, 0.75, 0.3, 60);
+L1.next = L2;
+const S_TAPE = 1866 - 1125, S_GATE = 2950 - 216 - 5 - 1125, Y_SERAH = 2585;
+L2.rule = it => {
+  let lim = Infinity;
+  if (!it.taped) lim = Math.min(lim, S_TAPE);
+  if (it.s <= S_GATE + 0.5) {
+    const pickBusy = L2.items.some(o => o !== it && o.s > S_GATE + 0.5);
+    if (pickBusy || gate.state !== 'DOWN' || gate.requests > 0) lim = Math.min(lim, S_GATE);
+  }
+  return lim;
+};
+function gateZoneClear() { return !L2.items.some(o => { const y = 1125 + o.s; return y + 216 > 2950 && y - 216 < 4250; }); }
+const rowSlots = [0, 1, 2, 3, 4].map(k => C.L - k * 115);
+function rowReady() { if (C.items.length < 5) return false; for (let k = 0; k < 5; k++) { const c = C.items[k]; if (Math.abs(c.s - rowSlots[k]) > 0.6 || c.moving) return false; } return true; }
+function stationShipper() { const it = L1.items.find(i => !i.full && Math.abs(i.s - S_ST) < 0.6 && !i.moving); return it || null; }
+function pickItem() { const it = L2.items[0]; return it && it.taped && it.s >= L2.L - 0.6 && !it.moving ? it : null; }
+
+/* ---------------- batch ---------------- */
+const batches = [];
+function newBatch() {
+  const n = batches.length; const sku = n % 2 ? SKU.PLFB : SKU.PLCF; const ship = [20, 12, 16][n % 3];
+  const b = { n, id: 'B-' + String(n + 1).padStart(3, '0'), sku, ship, remaining: ship * 120, pal: 0 }; batches.push(b); return b;
+}
+let palBatch = null;
+
+/* ---------------- kondisi awal (line sudah berjalan) ---------------- */
+const B1 = newBatch();
+function closedShipper(b) { const it = makeShipper(); closeShipper(it, b); it.full = true; it.rows = 24; return it; }
+function putOnPallet(s, it) { const p = slotPos(s, s.count); s.pallet.attach(it.obj); it.obj.position.set((p.X - s.cx) / 1000, p.z, (p.Y - s.cy) / 1000); it.obj.rotation.set(0, 0, 0); s.ships.push(it); s.count++; }
+{ const [ps1, , ps3] = ST;
+  for (let i = 0; i < 8; i++) putOnPallet(ps1, closedShipper(B1)); ps1.state = 'FULL'; ps1.batch = B1; ps1.fullAt = -200; ps1.used = -4000;
+  for (let i = 0; i < 5; i++) putOnPallet(ps3, closedShipper(B1)); ps3.state = 'FILLING'; ps3.batch = B1; ps3.used = -1200; ST[1].used = -3000; ST[3].used = -2500;
+  B1.pal = 13; palBatch = B1;
+  const m2 = closedShipper(B1); m2.len = 432; L2.add(m2, 2900 - 1125);
+  const tp = makeShipper(); tp.full = true; tp.rows = 24; tp.batch = B1; tp.len = 432;
+  for (let r = 0; r < 24; r++) for (let i = 0; i < 5; i++) { const c = new THREE.Mesh(CARTON, B1.sku.mat); c.position.set(CX[i], 0.034 + Math.floor(r / 4) * 0.06, CZ[r % 4]); tp.contents.add(c); }
+  L2.add(tp, S_TAPE);
+  const st = makeShipper(); st.rows = 10; st.batch = B1; st.lenNext = 432;
+  for (let r = 0; r < 10; r++) for (let i = 0; i < 5; i++) { const c = new THREE.Mesh(CARTON, B1.sku.mat); c.position.set(CX[i], 0.034 + Math.floor(r / 4) * 0.06, CZ[r % 4]); st.contents.add(c); }
+  L1.add(st, S_ST);
+  for (const s of [S_ST - 651, S_ST - 1302]) { const e = makeShipper(); e.lenNext = 432; L1.add(e, Math.max(0, s)); }
+  for (let k = 0; k < 5; k++) C.add(makeCarton(B1), rowSlots[k]);
+  for (const s of [4700, 4000, 3300, 2600, 1900, 1200, 500]) C.add(makeCarton(B1), s);
+  B1.remaining = 120 * 4 + 70 - 12;
+}
+
+/* ---------------- proses ---------------- */
+function* walk(p, X, Y, face) {
+  const x0 = p.X, y0 = p.Y, d = Math.hypot(X - x0, Y - y0);
+  if (d > 5) { p.yaw = Math.atan2(Y - y0, X - x0) / DEG; yield* tween(d / 1000 / 1.0, k => { p.X = x0 + (X - x0) * k; p.Y = y0 + (Y - y0) * k; p.phase = d / 1000 * k * 9; placePerson(p); }); }
+  p.phase = 0; if (face !== undefined) p.yaw = face; placePerson(p);
+}
+function* cartonerProc() {
+  let b = B1;
+  while (true) {
+    while (b.remaining > 0) {
+      yield until(() => C.canAccept(115));
+      const c = makeCarton(b); c.last = b.remaining === 1; C.add(c, 0); b.remaining--;
+      yield sleep(2.0);
+    }
+    sim.clearance = true; log(`Cartoner selesai ${b.id}. Line clearance ±5 menit.`);
+    yield sleep(300); sim.clearance = false;
+    b = newBatch(); log(`Batch ${b.id} (${b.sku.code}, ${b.ship} shipper) mulai.`);
+  }
+}
+function* erectProc() {
+  placePerson(opA);
+  while (true) {
+    yield until(() => L1.items.filter(i => !i.full).length < 3);
+    yield* walk(opA, 5800, 380, 180);
+    const it = makeShipper(); it.lenNext = 432; it.obj.position.copy(V(5420, 360, 0.86)); it.obj.scale.y = 0.04;
+    opA.work = true; OPB.a = 'Pos A: erect + taping bawah';
+    yield* tween(45, k => { it.obj.scale.y = 0.04 + 0.96 * easeIO(Math.min(1, k * 1.4)); placePerson(opA); });
+    opA.work = false; OPB.a = 'Pos A: menunggu ruang buffer';
+    yield until(() => L1.canAccept(591));
+    const from = it.obj.position.clone(), to = V(4745.5, 1125, 0.75);
+    yield* walk(opA, 5000, 760, 90);
+    yield* tween(2.0, k => { it.obj.position.lerpVectors(from, to, easeIO(k)); it.obj.position.y += Math.sin(k * Math.PI) * 0.25; });
+    L1.add(it, 0); OPB.a = 'Pos A: siaga';
+    yield* walk(opA, 5850, 380, 180);
+  }
+}
+function* cobotProc() {
+  const clk = () => CB.speed;
+  function* mv(to, dur) { const from = CB.tool.clone(); yield* tween(dur, k => { CB.tool.lerpVectors(from, to, easeIO(k)); updateCobot(); }, clk); }
+  updateCobot();
+  while (true) {
+    CB.busy = false; CB.status = 'Menunggu baris / shipper';
+    yield until(() => rowReady() && stationShipper());
+    CB.busy = true; CB.status = 'Pick baris 5 karton';
+    const sh = stationShipper(); const row = C.items.slice(0, 5);
+    const pX = 5792.5 - 230, above = V(pX, 2185, 1.25);
+    yield* mv(above, 1.0); yield* mv(V(pX, 2185, 0.912), 0.45);
+    yield* tween(0.25, () => { }, clk);
+    for (const c of row) { C.remove(c); cGrip.attach(c.obj); }
+    yield* mv(above, 0.45);
+    const r = sh.rows, lay = Math.floor(r / 4), j = r % 4;
+    const shX = 6050, shY = 1125 + CZ[j] * 1000, topZ = 0.75 + 0.005 + (lay + 1) * 0.06;
+    CB.status = `Place baris ${r + 1}/24`;
+    yield* mv(V(shX, shY, 1.28), 1.0); yield* mv(V(shX, shY, topZ + 0.002), 0.5);
+    yield* tween(0.25, () => { }, clk);
+    for (const c of row) {
+      sh.contents.attach(c.obj); const lx = c.obj.position.x; let bi = 0; for (let i = 1; i < 5; i++) if (Math.abs(CX[i] - lx) < Math.abs(CX[bi] - lx)) bi = i;
+      c.obj.position.set(CX[bi], 0.034 + lay * 0.06, CZ[j]); c.obj.rotation.set(0, 0, 0);
+      if (c.last) sh.last = true; sh.batch = c.batch;
+    }
+    sh.rows++; sim.cartons += 5;
+    if (sh.rows === 24) { sh.full = true; }
+    yield* mv(V(shX, shY, 1.28), 0.45);
+  }
+}
+function* tapeProc() {
+  placePerson(opB); OPB.b = 'Pos B: siaga';
+  while (true) {
+    yield until(() => L2.items.some(i => !i.taped && Math.abs(i.s - S_TAPE) < 0.6 && !i.moving));
+    const it = L2.items.find(i => !i.taped && Math.abs(i.s - S_TAPE) < 0.6);
+    OPB.b = 'Pos B: tutup flap + taping';
+    yield* walk(opB, 6410, 1866, 0);
+    opB.work = true;
+    yield* tween(5, k => { setFlaps(it, 1 - easeIO(k)); placePerson(opB); });
+    it.contents.visible = false; it.tape.visible = true;
+    yield* tween(12, k => { it.tape.scale.x = 0.05 + 0.59 * k; placePerson(opB); });
+    for (const t of it.tapes) t.visible = true;
+    OPB.b = 'Pos B: tempel label batch';
+    yield* tween(7, k => { placePerson(opB); });
+    closeShipper(it, it.batch); opB.work = false;
+    yield* walk(opB, 6280, 2380, 0); OPB.b = 'Pos B: siaga';
+  }
+}
+function* gateProc() {
+  while (true) {
+    yield until(() => gate.requests > 0 && gateZoneClear());
+    gate.state = 'NAIK'; log('Gate conveyor naik untuk handlift (interlock).');
+    yield* tween(3, k => { gate.ang = 80 * easeIO(k); applyGate(); });
+    gate.state = 'UP';
+    yield until(() => gate.requests === 0);
+    gate.state = 'TURUN';
+    yield* tween(3, k => { gate.ang = 80 * (1 - easeIO(k)); applyGate(); });
+    gate.state = 'DOWN';
+  }
+}
+function chooseStation(b) {
+  return ST.find(s => s.state === 'FILLING' && s.batch === b) || ST.filter(s => s.state === 'EMPTY').sort((p, q) => (p.used || 0) - (q.used || 0))[0] || null;
+}
+const hlQueue = [ST[0]];
+function* gantryProc() {
+  function* mvXY(X, Y) { const x0 = GT.X, y0 = GT.Y; const d = Math.max(Math.abs(X - x0) / 1200, Math.abs(Y - y0) / 800); if (d < 1e-3) return; yield* tween(d + 0.35, k => { const e = easeIO(k); GT.X = x0 + (X - x0) * e; GT.Y = y0 + (Y - y0) * e; updateGantry(); }); }
+  function* mvZ(Z) { const z0 = GT.Z; const d = Math.abs(Z - z0) / 0.6; if (d < 1e-3) return; yield* tween(d + 0.2, k => { GT.Z = z0 + (Z - z0) * easeIO(k); updateGantry(); }); }
+  updateGantry();
+  while (true) {
+    GT.busy = false; GT.status = 'Siaga di pick station';
+    yield until(() => pickItem() && chooseStation(pickItem().batch));
+    const it = pickItem(); GT.busy = true;
+    laser.visible = true; GT.status = `Scan label ${it.batch.id}`; yield sleep(0.6); laser.visible = false;
+    const s = chooseStation(it.batch);
+    if (s.state === 'EMPTY') { s.state = 'FILLING'; s.batch = it.batch; s.used = sim.t; log(`${s.id} dialokasikan ke batch ${it.batch.id} (${it.batch.sku.code}).`); }
+    GT.status = `Ambil shipper → ${s.id}`;
+    yield* mvXY(6850, 4820); yield* mvZ(0.75 + SH.H + 0.001); yield sleep(0.4);
+    L2.remove(it); gGrip.attach(it.obj);
+    yield* mvZ(1.40);
+    const p = slotPos(s, s.count);
+    yield* mvXY(p.X, p.Y); yield* mvZ(p.z + SH.H + 0.001); yield sleep(0.4);
+    s.pallet.attach(it.obj); it.obj.position.set((p.X - s.cx) / 1000, p.z, (p.Y - s.cy) / 1000); it.obj.rotation.set(0, 0, 0);
+    s.ships.push(it); s.count++; sim.ships++; it.batch.pal++; palBatch = it.batch;
+    if (s.count === 8 || it.last) {
+      s.state = 'FULL'; s.fullAt = sim.t; hlQueue.push(s);
+      log(it.last && s.count < 8 ? `${s.id} ditutup parsial ${s.count}/8 (akhir batch ${it.batch.id}). Handlift dipanggil.` : `${s.id} penuh 8/8 (${it.batch.id}). Handlift dipanggil.`);
+    }
+    GT.status = 'Kembali ke pick';
+    yield* mvZ(1.40); yield* mvXY(6850, 4820);
+  }
+}
+function* handliftProc() {
+  function* mv(X, Y, v = 0.85) { const x0 = HL.X, y0 = HL.Y, d = Math.hypot(X - x0, Y - y0) / 1000; if (d < 1e-4) return; yield* tween(d / v + 0.5, k => { const e = easeIO(k); HL.X = x0 + (X - x0) * e; HL.Y = y0 + (Y - y0) * e; HL.walk = (HL.wbase || 0) + d * e * 8; updateHL(); }); HL.wbase = (HL.wbase || 0) + d * 8; }
+  function* rot(th) { const d = ((th - HL.th + 540) % 360) - 180; if (Math.abs(d) < 0.5) return; const t0 = HL.th; yield* tween(Math.abs(d) / 70 + 0.3, k => { HL.th = t0 + d * easeIO(k); HL.walk += 0.05; updateHL(); }); HL.th = (th + 360) % 360; }
+  function* crossGate(east) {
+    gate.requests++; const prev = HL.status; HL.status = prev + ' · tunggu gate';
+    yield until(() => gate.state === 'UP'); HL.status = prev;
+    yield* mv(east ? 7450 : 6250, 3600, 0.7); gate.requests--;
+  }
+  updateHL();
+  while (true) {
+    if (!hlQueue.length) {
+      if (Math.abs(HL.X - 300) > 5) { HL.status = 'Kembali ke parkir'; yield* rot(0); yield* mv(300, 3750); }
+      HL.status = 'Siaga (parkir)'; yield until(() => hlQueue.length > 0);
+    }
+    const s = hlQueue[0];
+    if (sim.t - (s.fullAt || 0) < 120) { HL.status = `Dipanggil ke ${s.id} · operator menuju (±2 menit)`; yield until(() => sim.t - (s.fullAt || 0) >= 120); }
+    hlQueue.shift();
+    HL.status = `Menuju ${s.id}`;
+    yield* rot(s.cx > HL.X ? 180 : 0); yield* mv(s.cx, 3750);
+    yield* rot(90); s.state = 'SERVICE'; HL.status = `Ambil pallet ${s.id} (light curtain muting)`;
+    yield* mv(s.cx, s.cy, 0.45);
+    const pal = s.pallet; HL.lift.attach(pal); yield* tween(1.2, k => { HL.h = 0.1 * k; updateHL(); });
+    yield* mv(s.cx, 3750, 0.45); s.pallet = null; s.state = 'NOPALLET';
+    const n = s.count, bb = s.batch;
+    HL.status = `Bawa ${s.id} ke MAL OUT`;
+    yield* rot(180); yield* mv(5950, 3750); yield* mv(6250, 3600); yield* crossGate(true); yield* mv(7750, 3600);
+    yield* rot(90); yield* mv(7750, 1500); yield* rot(180); yield* mv(9300, 1500);
+    HL.g.visible = false; sim.pallets++; log(`Pallet ${s.id} keluar via MAL OUT (${bb ? bb.id : ''}, ${n} shipper).`);
+    for (const it of s.ships) { it.obj.parent && it.obj.parent.remove(it.obj); } s.ships = []; HL.lift.remove(pal);
+    HL.status = 'Di gudang · ambil pallet kosong'; yield sleep(60);
+    const np = makePallet(); HL.lift.attach(np); np.position.set(0, 0, 0); np.rotation.set(0, Math.PI / 2, 0); HL.h = 0.1;
+    HL.X = 9300; HL.Y = 1500; HL.th = 0; HL.g.visible = true; updateHL();
+    HL.status = `Pallet kosong → ${s.id}`;
+    yield* mv(7750, 1500); yield* rot(270); yield* mv(7750, 3600); yield* rot(0); yield* mv(7450, 3600);
+    yield* crossGate(false); yield* mv(5950, 3750); yield* mv(s.cx, 3750);
+    yield* rot(90); s.state = 'SERVICE'; yield* mv(s.cx, s.cy, 0.45);
+    yield* tween(1.0, k => { HL.h = 0.1 * (1 - k); updateHL(); });
+    scene.attach(np); np.position.copy(V(s.cx, s.cy, 0)); np.rotation.set(0, 0, 0); s.pallet = np;
+    yield* mv(s.cx, 3750, 0.45);
+    s.state = 'EMPTY'; s.count = 0; s.batch = null; log(`${s.id} siap: pallet kosong terpasang.`);
+  }
+}
+spawn(cartonerProc()); spawn(erectProc()); spawn(cobotProc()); spawn(tapeProc()); spawn(gateProc()); spawn(gantryProc()); spawn(handliftProc());
+for (const p of seated) placePerson(p);
+placePerson(opA); placePerson(opB); updateHL(); updateGantry(); updateCobot();
+log('Simulasi mulai: line berjalan, batch B-001 (PLCF).');
+log('PS1 penuh 8/8 (B-001). Handlift dipanggil.');
+
+function simStep(dt) {
+  sim.dt = dt; sim.t += dt; sim.step++;
+  escClosed = C.items.filter(c => c.s > ESC + 0.5).length >= 5;
+  const prevY = L2.items.map(i => [i, 1125 + i.s]);
+  C.update(dt); L1.update(dt); L2.update(dt);
+  for (const [i, y0] of prevY) if (i.lane === L2 && y0 < Y_SERAH && 1125 + i.s >= Y_SERAH) sim.outPulse = 1.2;
+  sim.outPulse = Math.max(0, sim.outPulse - dt);
+  const inZone = opB.X > 5150 && opB.X < 6450 && opB.Y > 700 && opB.Y < 2250;
+  CB.speed = inZone ? 0.35 : 1; CB.inZone = inZone;
+  if (CB.busy) CB.busyT += dt; if (GT.busy) GT.busyT += dt;
+  stepProcs();
+}
+
+/* ============================================================
+   Visual per frame + HUD
+   ============================================================ */
+const STATE_TXT = { EMPTY: 'Pallet kosong, siap', FILLING: 'Mengisi', FULL: 'Penuh, tunggu handlift', SERVICE: 'Handlift di station', NOPALLET: 'Tanpa pallet' };
+const STATE_COL = { EMPTY: 0x23a35a, FILLING: 0xe0a000, FULL: 0xe03a2f, SERVICE: 0x2f6fd0, NOPALLET: 0x7a8590 };
+const STATE_CSS = { EMPTY: 'var(--ok)', FILLING: 'var(--warn)', FULL: 'var(--crit)', SERVICE: 'var(--info)', NOPALLET: 'var(--idle)' };
+const stList = document.getElementById('stList');
+stList.innerHTML = ST.map(s => `<div class="st-row" id="row-${s.id}"><span class="dot"></span><b>${s.id}</b><span class="s"></span><span class="segs">${'<i></i>'.repeat(8)}</span></div>`).join('');
+const $ = id => document.getElementById(id);
+function visuals(realT) {
+  for (const s of ST) {
+    const blink = s.state === 'FULL' ? (Math.sin(realT * 6) > 0 ? 1 : 0.15) : 1;
+    s.lamp.material.color.setHex(STATE_COL[s.state]); s.lamp.material.emissive.setHex(STATE_COL[s.state]); s.lamp.material.emissiveIntensity = 0.9 * blink;
+    const muted = s.state === 'SERVICE' || s.state === 'NOPALLET';
+    s.beam.material.color.setHex(muted ? 0xffb020 : 0xff2e2e); s.beam.material.opacity = muted ? 0.2 : 0.12;
+  }
+  beacon.material.emissiveIntensity = gate.state === 'DOWN' ? 0 : (Math.sin(realT * 10) > 0 ? 1.6 : 0.2);
+  scanZone.material.color.setHex(CB.inZone ? 0xffa000 : 0xff3030); scanZone.material.opacity = CB.inZone ? 0.16 : 0.06;
+  escPin.position.z = wz(escClosed ? 2085 : 2040); stopL1.position.y = (L1.items.some(i => i.full && Math.abs(i.s - S_ST) < 400)) ? 0.66 : 0.71;
+  clamp.position.z = wz(stationShipper() ? 870 : 810);
+  for (const p of seated) { p.armL.rotation.z = 1.05 + Math.sin(realT * 3 + p.X) * 0.12; p.armR.rotation.z = 1.05 - Math.sin(realT * 3.3 + p.X) * 0.12; }
+  if (opA.work) placePerson(opA); if (opB.work) placePerson(opB);
+}
+let hudT = 0;
+function hud() {
+  $('clk').textContent = fmt(sim.t);
+  $('spdTxt').textContent = `${sim.speed}× · ${sim.paused ? 'jeda' : 'berjalan'}`;
+  $('kCart').textContent = sim.cartons.toLocaleString('id-ID'); $('kShip').textContent = sim.ships; $('kPal').textContent = sim.pallets;
+  const cb = batches[batches.length - 1];
+  $('bCart').textContent = sim.clearance ? `${cb.id} · line clearance` : cb.id; $('bCartSku').textContent = cb.sku.code; $('bCartSku').style.background = cb.sku.color;
+  if (palBatch) { $('bPal').textContent = `${palBatch.id} (${palBatch.sku.code})`; $('bPalN').textContent = `${palBatch.pal}/${palBatch.ship} shipper`; $('bProg').style.width = (100 * palBatch.pal / palBatch.ship) + '%'; }
+  for (const s of ST) {
+    const r = $('row-' + s.id); r.querySelector('.dot').style.background = STATE_CSS[s.state];
+    r.querySelector('.s').textContent = STATE_TXT[s.state] + (s.batch && s.state !== 'EMPTY' && s.state !== 'NOPALLET' ? ` · ${s.batch.id}` : '');
+    r.querySelectorAll('.segs i').forEach((e, i) => e.classList.toggle('on', i < s.count && s.state !== 'NOPALLET'));
+    s.lblEl.querySelector('.st').textContent = `${s.state === 'NOPALLET' ? '–' : s.count}/8${s.batch && s.state !== 'EMPTY' && s.state !== 'NOPALLET' ? ' · ' + s.batch.id : ''}`;
+  }
+  const pickBusy = L2.items.some(o => o.s > S_GATE + 0.5);
+  const f = L1.items[0]; const fullStop = !!(f && f.full && f.s >= L1.L - 0.6);
+  $('sReady').classList.toggle('on', !pickBusy); $('sOut').classList.toggle('on', sim.outPulse > 0); $('sFull').classList.toggle('on', fullStop); $('sFault').classList.toggle('on', false);
+  const util = (b, t) => sim.t > 60 ? Math.round(100 * b / sim.t) + '%' : '–';
+  $('uCob').textContent = CB.status; $('uCobU').textContent = util(CB.busyT); $('uCobT').hidden = !CB.inZone;
+  $('uGan').textContent = GT.status; $('uGanU').textContent = util(GT.busyT);
+  $('uGate').textContent = { DOWN: 'Turun (konveyor jalan)', NAIK: 'Naik…', UP: 'Terbuka (handlift lewat)', TURUN: 'Turun…' }[gate.state];
+  $('uHl').textContent = HL.status; $('uOp').textContent = `${OPB.a || ''} · ${OPB.b || ''}`;
+}
+
+/* ---------------- kamera ---------------- */
+const CAMS = {
+  ov: { p: V(9600, 10600, 8.2), t: V(4000, 3000, 0.4) },
+  m1: { p: V(9400, 5300, 5.4), t: V(5500, 1300, 0.7) },
+  m2: { p: V(2600, 1500, 5.2), t: V(4100, 4900, 0.6) },
+  top: { p: V(4350, 2935, 13.5), t: V(4350, 2930, 0) },
+};
+let camMode = 'ov', camAnim = null;
+function goCam(k) {
+  camMode = k; document.querySelectorAll('#cams button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === k));
+  if (k === 'hl') { const tgt = HL.g.position.clone().setY(0.8); const off = new THREE.Vector3(-3.2, 3.4, 4.2); camAnim = { p0: camera.position.clone(), t0: controls.target.clone(), p1: tgt.clone().add(off), t1: tgt, k: 0 }; return; }
+  const c = CAMS[k]; const narrow = innerWidth < 760 ? 1.35 : 1; const p1 = c.t.clone().add(c.p.clone().sub(c.t).multiplyScalar(narrow));
+  camAnim = { p0: camera.position.clone(), t0: controls.target.clone(), p1, t1: c.t.clone(), k: 0 };
+}
+{ const c = CAMS.ov; const narrow = innerWidth < 760 ? 1.35 : 1; camera.position.copy(c.t.clone().add(c.p.clone().sub(c.t).multiplyScalar(narrow))); controls.target.copy(c.t); }
+controls.addEventListener('start', () => { camAnim = null; });
+
+/* ---------------- tema ---------------- */
+function applyTheme() {
+  const cs = getComputedStyle(document.documentElement); const g = n => cs.getPropertyValue(n).trim() || '#888';
+  scene.background = new THREE.Color(g('--scene')); scene.fog = new THREE.Fog(new THREE.Color(g('--scene')), 22, 60);
+  mat.floor.color.set(g('--floor')); mat.ground.color.set(g('--ground')); gridMat.color.set(g('--gridline'));
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+/* ---------------- kontrol UI ---------------- */
+$('play').onclick = () => { sim.paused = !sim.paused; $('play').textContent = sim.paused ? 'Lanjut' : 'Jeda'; $('play').setAttribute('aria-pressed', sim.paused); hud(); };
+document.querySelectorAll('#spd button').forEach(b => b.onclick = () => { sim.speed = +b.dataset.s; document.querySelectorAll('#spd button').forEach(x => x.setAttribute('aria-pressed', x === b)); hud(); });
+document.querySelectorAll('#cams button').forEach(b => b.onclick = () => goCam(b.dataset.c));
+$('tLbl').onclick = () => { const on = app.classList.toggle('nolabels'); $('tLbl').setAttribute('aria-pressed', !on); };
+$('tZone').onclick = () => { zones.visible = !zones.visible; $('tZone').setAttribute('aria-pressed', zones.visible); };
+$('tWall').onclick = () => { const full = $('tWall').getAttribute('aria-pressed') !== 'true'; setWallH(full ? 3.0 : 0.45); $('tWall').setAttribute('aria-pressed', full); };
+$('reset').onclick = () => location.reload();
+const panel = $('panel');
+if (innerWidth < 760) panel.classList.add('collapsed');
+$('panelBtn').onclick = () => { const c = panel.classList.toggle('collapsed'); $('panelBtn').setAttribute('aria-pressed', !c); };
+
+/* ---------------- loop ---------------- */
+function resize() { const w = app.clientWidth, h = app.clientHeight; renderer.setSize(w, h, false); labelR.setSize(w, h); camera.aspect = w / h;
+  if (w >= 760) camera.setViewOffset(w, h, 160, 0, w, h); else camera.clearViewOffset();
+  camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+const clock = new THREE.Clock(); let realT = 0;
+function frame() {
+  const rd = Math.min(0.1, clock.getDelta()); realT += rd;
+  if (!sim.paused) { const sd = rd * sim.speed; const n = Math.max(1, Math.ceil(sd / 0.05)); for (let i = 0; i < n; i++) simStep(sd / n); }
+  visuals(realT);
+  if (camAnim) { camAnim.k = Math.min(1, camAnim.k + rd / 1.2); const e = easeIO(camAnim.k); camera.position.lerpVectors(camAnim.p0, camAnim.p1, e); controls.target.lerpVectors(camAnim.t0, camAnim.t1, e); if (camAnim.k >= 1) camAnim = null; }
+  else if (camMode === 'hl' && HL.g.visible) { const tgt = HL.g.position.clone().setY(0.8); const d = tgt.clone().sub(controls.target); controls.target.add(d.multiplyScalar(0.08)); camera.position.add(d); }
+  controls.update();
+  renderer.render(scene, camera); labelR.render(scene, camera);
+  hudT += rd; if (hudT > 0.2) { hudT = 0; hud(); }
+  requestAnimationFrame(frame);
+}
+window.__sim = { sim, ST, L1, L2, C, GT, HL, gate, batches, CB, simStep, goCam };
+hud(); requestAnimationFrame(frame);
+</script>
+
+</body>
+</html>
