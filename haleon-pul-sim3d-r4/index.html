@@ -457,7 +457,7 @@ const pusher = box(4402, 2005, 4977, 2050, 0.86, 0.96, mat.pbLight);
 box(4402, 1960, 4977, 2005, 0.9, 0.96, mat.pb);
 box(4402, 2300, 4977, 2740, 0.82, 0.85, mat.stainless);
 for (const [x, y] of [[4420, 2320], [4960, 2320], [4420, 2720], [4960, 2720]]) box(x - 20, y - 20, x + 20, y + 20, 0, 0.82, mat.stainless);
-box(4402, 2745, 4977, 2785, 0.85, 0.95, mat.pb);
+box(4402, 2722, 4977, 2762, 0.85, 0.95, mat.pb);
 const sideClamp = box(4360, 2300, 4400, 2740, 0.85, 0.93, mat.pb);
 // case erector
 box(4750, 60, 5950, 1950, 0, 0.12, mat.existDark);
@@ -582,7 +582,7 @@ label('Paket A — robot cell', 6900, 5600, 2.4, 'pa big');
 label('Cartoner (existing)', -350, 2010, 2.05);
 label('Blister → karton · 8 operator (existing)', 1800, 2183, 1.55);
 label('Carton check + reject', 3295, 2183, 1.7);
-label('Layer former 5 × 4', 4690, 2520, 1.2, 'pb');
+label('Layer former 5 × 4 · stroke 1 baris', 4690, 2508, 1.2, 'pb');
 label('Case erector + bottom taping', 5350, 1000, 1.95, 'pb');
 label('Packing station', 5350, 2276, 1.5, 'pb');
 label('Top case sealer', 5350, 3435, 1.6, 'pb');
@@ -644,7 +644,7 @@ const C = new Lane(0, 2185, 4977, 2185, 0.85, 0.35, 0); C.endHalf = true;
 const ROW = [0, 1, 2, 3, 4].map(k => 4977 - 57.5 - k * 115);
 const ESC = 4402 - 57.5; let escClosed = false;
 C.rule = it => (escClosed && it.s <= ESC + 0.5) ? ESC : Infinity;
-const LF = { rows: 0, busy: false, cartons: [], ready: false, status: 'Siaga' };
+const LF = { rows: 0, busy: false, cartons: [], rowsArr: [], ready: false, status: 'Siaga' };
 function rowReady() { if (C.items.length < 5) return false; for (let k = 0; k < 5; k++) { const c = C.items[k]; if (Math.abs(c.s - ROW[k]) > 0.6 || c.moving) return false; } return true; }
 // kolom shipper: discharge erector (Y 1650) → pick (pusat Y 4744.5)
 const L = new Lane(5350, 1650, 5350, 5040, 0.75, 0.3, 60, 90); L.endHalf = true;
@@ -677,7 +677,7 @@ function putOnPallet(s, it) { const p = slotPos(s, s.count); s.pallet.attach(it.
   const sl = makeShipper(); fillLayers(sl, 6, B1); sl.full = true; L.add(sl, 1650);
   const st = makeShipper(); fillLayers(st, 3, B1); L.add(st, S_ST);
   L.add(makeShipper(), S_ST - 651);
-  for (let r = 0; r < 2; r++) for (let i = 0; i < 5; i++) { const c = makeCarton(B1); c.obj.position.copy(V(4459.5 + i * 115, 2688 - r * 104, 0.88)); LF.cartons.push(c); }
+  for (let r = 0; r < 2; r++) { const rc = []; const y = 2456 - r * 104; for (let i = 0; i < 5; i++) { const c = makeCarton(B1); c.obj.position.copy(V(4459.5 + i * 115, y, 0.88)); LF.cartons.push(c); rc.push(c); } LF.rowsArr.push({ c: rc, y }); }
   LF.rows = 2;
   for (let k = 0; k < 5; k++) C.add(makeCarton(B1), ROW[k]);
   for (const s of [4250, 3600, 2900, 2200, 1500, 800]) C.add(makeCarton(B1), s);
@@ -695,14 +695,24 @@ function* cartonerProc() {
   }
 }
 function* layerFormerProc() {
+  // pusher stroke = 1 baris: baris baru masuk slot pertama dead plate, baris sebelumnya ikut terdorong 104 mm
+  const P0 = 2027.5, STROKE = 250, Y_IN = 2352;
   while (true) {
-    LF.status = LF.rows >= 4 ? 'Layer 20 karton siap' : `Membentuk baris ${LF.rows + 1}/4`;
+    LF.status = LF.rows >= 4 ? 'Layer 20 karton siap' : `Menunggu baris ${LF.rows + 1}/4 (5 karton)`;
     yield until(() => LF.rows < 4 && rowReady());
-    LF.busy = true; const row = C.items.slice(0, 5); for (const c of row) C.remove(c);
-    const ty = 2688 - LF.rows * 104, y0 = 2185;
-    yield* tween(1.4, k => { const y = y0 + (ty - y0) * easeIO(k); for (let i = 0; i < 5; i++) row[4 - i].obj.position.copy(V(4459.5 + i * 115, y, 0.88)); pusher.position.z = wz(2027.5 + (y - y0)); });
-    LF.cartons.push(...row); LF.rows++;
-    yield* tween(0.8, k => { pusher.position.z = wz(2027.5 + (ty - y0) * (1 - k)); });
+    LF.busy = true; LF.status = `Dorong baris ${LF.rows + 1}/4 · stroke 1 baris`;
+    const row = C.items.slice(0, 5); for (const c of row) C.remove(c);
+    const rowX = [row[4], row[3], row[2], row[1], row[0]];
+    const old = LF.rowsArr.map(r => r.y);
+    yield* tween(1.6, k => {
+      const pc = P0 + STROKE * easeIO(k); pusher.position.z = wz(pc);
+      const ny = Math.max(2185, pc + 22.5 + 52);
+      for (let i = 0; i < 5; i++) rowX[i].obj.position.copy(V(4459.5 + i * 115, ny, 0.88));
+      const sh = Math.max(0, ny - (2300 - 52));
+      LF.rowsArr.forEach((r, j) => { r.y = old[j] + sh; for (let i = 0; i < 5; i++) r.c[i].obj.position.copy(V(4459.5 + i * 115, r.y, 0.88)); });
+    });
+    LF.rowsArr.push({ c: rowX, y: Y_IN }); LF.cartons.push(...row); LF.rows++;
+    yield* tween(0.9, k => { pusher.position.z = wz(P0 + STROKE * (1 - easeIO(k))); });
     LF.busy = false;
     if (LF.rows === 4) { yield* tween(0.6, k => { sideClamp.position.x = wx(4380 + 15 * Math.sin(k * Math.PI)); }); LF.ready = true; LF.status = 'Layer 20 karton siap'; }
   }
@@ -764,10 +774,10 @@ function* robotProc() {
     if (LF.ready && stationBox()) {
       ROB.task = 'l'; const bx = stationBox(); const n = bx.layers;
       ROB.status = `Pick layer 20 karton → shipper (layer ${n + 1}/6)`;
-      yield* rMove(4689.5, 2532, 0, 0.911);
+      yield* rMove(4689.5, 2508, 0, 0.911);
       yield sleep(0.4); vac(true);
       const cs = LF.cartons.splice(0); for (const c of cs) grip.attach(c.obj);
-      LF.rows = 0; LF.ready = false;
+      LF.rows = 0; LF.ready = false; LF.rowsArr = [];
       yield* rMove(5350, 2276, 90, 0.755 + (n + 1) * 0.06 + 0.002, 0.25);
       yield sleep(0.3); vac(false);
       for (const c of cs) {
