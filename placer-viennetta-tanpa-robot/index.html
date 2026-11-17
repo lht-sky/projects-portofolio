@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Placer Viennetta Non-Robot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: satu kolom dokumen teknik — tiap kartu = satu tampilan animasi + keterangan; tabel perbandingan di bawah */
+:root{
+  --bg:#edf0ee; --surface:#fbfcfb; --scene:#e3e8e5; --fg:#1b2321; --muted:#59655f; --line:#d2d9d5;
+  --accent:#1c6e8c; --good:#2b8a3e; --bad:#c0392b; --warn:#b97400;
+  --plate:#f6f7f4; --plate-edge:#aeb7b2; --hole:#7e8884; --belt:#2f9447; --old:#8d979b; --steel:#a7b0b5;
+  --tray:#ffffff; --ice:#e6cf9f; --choc:#5a321e;
+  --f-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111614; --surface:#191f1d; --scene:#151b19; --fg:#e2e8e5; --muted:#9aa6a0; --line:#2b3431;
+    --accent:#4aa3c4; --good:#5cc26f; --bad:#ef6a5e; --warn:#e2a23a;
+    --plate:#d4d9d5; --plate-edge:#7c8681; --hole:#5c6662; --belt:#46b061; --old:#6c777c; --steel:#6b767c;
+    --tray:#f2f2ef; --ice:#d8bf8c; --choc:#6b3c24; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111614; --surface:#191f1d; --scene:#151b19; --fg:#e2e8e5; --muted:#9aa6a0; --line:#2b3431;
+  --accent:#4aa3c4; --good:#5cc26f; --bad:#ef6a5e; --warn:#e2a23a;
+  --plate:#d4d9d5; --plate-edge:#7c8681; --hole:#5c6662; --belt:#46b061; --old:#6c777c; --steel:#6b767c;
+  --tray:#f2f2ef; --ice:#d8bf8c; --choc:#6b3c24; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:24px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px));display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 24px}
+header h1{font-size:26px;line-height:1.2;margin:0;font-weight:600;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:68ch}
+.ctrl{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:13px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.card .hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:14px 16px 10px}
+.card h2{margin:0;font-size:17px;font-weight:600}
+.tag{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;color:#fff}
+.tag.old{background:var(--bad)}.tag.new{background:var(--good)}
+.card .hd .sub{color:var(--muted);font-size:13.5px}
+.cv{display:block;width:100%;background:var(--scene);border-top:1px solid var(--line)}
+.cvlab{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:8px 16px 0;background:var(--scene);border-top:1px solid var(--line)}
+.cvlab + .cv{border-top:0}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 22px;padding:12px 16px 16px;font-size:13.5px}
+.notes div{display:flex;gap:8px;align-items:flex-start;min-width:0}
+.dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:7px}
+.dot.bad{background:var(--bad)}.dot.good{background:var(--good)}
+.lanes{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 16px 12px}
+.lanes span{font-size:13px;color:var(--muted);margin-right:4px}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:620px}
+th,td{text-align:left;padding:9px 16px;border-top:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface)}
+td:first-child{color:var(--bad);font-weight:500}
+td:nth-child(2){color:var(--fg)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;padding:4px 16px 16px}
+.kv div{background:var(--scene);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.kv b{font-family:var(--f-mono);font-weight:500;font-size:18px;font-variant-numeric:tabular-nums}
+.kv span{font-size:12.5px;color:var(--muted)}
+.foot{font-size:12.5px;color:var(--muted);max-width:90ch;margin:0}
+@media (max-width:640px){ header h1{font-size:22px} .ctrl{margin-left:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Placer Viennetta tanpa robot</h1>
+      <p>Memindahkan Viennetta dari Output 2 ke carrier plate cooling conveyor dengan belt bernose rendah yang tersinkron ke plate, menggantikan conveyor maju-mundur + seluncuran.</p>
+    </div>
+    <div class="ctrl"><button id="play" type="button">Jeda animasi</button><button id="slow" type="button" aria-pressed="false">Lambat 0,4×</button></div>
+  </header>
+
+  <section class="card" aria-labelledby="h-old">
+    <div class="hd"><span class="tag old">Sebelumnya</span><h2 id="h-old">Conveyor maju-mundur + seluncuran</h2><span class="sub">Masuk dari samping, tegak lurus laju plate; 5 produk melintang sekali kirim, turun lewat seluncuran</span></div>
+    <div class="cvlab">Potongan melintang plate · plate bergerak masuk bidang gambar</div><canvas class="cv" id="oldSide" role="img" aria-label="Potongan melintang cara lama: produk masuk dari samping, meluncur dari ketinggian lewat seluncuran dan mendarat menyeberang plate"></canvas>
+    <div class="cvlab">Tampak atas · cooling conveyor</div><canvas class="cv" id="oldTop" role="img" aria-label="Tampak atas cara lama: produk mendarat dengan posisi dan arah acak, sebagian di sambungan plate"></canvas>
+    <div class="notes">
+      <div><i class="dot bad"></i><span>Masuk tegak lurus: produk masih bergerak menyeberang plate saat plate menariknya ke arah lain. Gesekan dari dua arah memelintir produk sehingga miring.</span></div>
+      <div><i class="dot bad"></i><span>5 produk dikirim sekaligus tapi turun dari seluncuran satu per satu. Waktu luncur tiap produk berbeda, sehingga jarak dan posisinya di lebar plate tidak teratur.</span></div>
+      <div><i class="dot bad"></i><span>Beda tinggi dan seluncuran membuat produk berakselerasi lalu jatuh. Gerak maju-mundur tidak tersinkron, sehingga produk bisa mendarat di sambungan plate.</span></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-new">
+    <div class="hd"><span class="tag new">Usulan</span><h2 id="h-new">Placer nose rendah, tersinkron ke plate</h2><span class="sub">Belt servo menurunkan produk di ketinggian ±3 mm dengan kecepatan sama dengan plate</span></div>
+    <div class="cvlab">Tampak samping · inset: detail ujung nose</div><canvas class="cv" id="newSide" role="img" aria-label="Tampak samping usulan: produk dibawa belt sampai ujung nose 3 mm di atas plate, nose mundur di bawah tatakan sehingga produk diletakkan rata di tengah plate"></canvas>
+    <div class="cvlab">Tampak atas · cooling conveyor</div>
+    <div class="lanes" role="group" aria-label="Jumlah lane sesuai kecepatan plate">
+      <span>Kecepatan plate saat Viennetta:</span>
+      <button type="button" data-n="1" aria-pressed="true">12 m/min · 1 lane</button>
+      <button type="button" data-n="2" aria-pressed="false">6 m/min · 2 lane</button>
+      <button type="button" data-n="4" aria-pressed="false">3 m/min · 4 lane</button>
+      <button type="button" data-n="5" aria-pressed="false">2,4 m/min · 5 lane</button>
+    </div>
+    <canvas class="cv" id="newTop" role="img" aria-label="Tampak atas usulan: produk diletakkan lurus di tengah plate; pada 2 atau 4 lane, shuttle belt membagi produk ke lane"></canvas>
+    <div class="notes">
+      <div><i class="dot good"></i><span>Output 2 dibelokkan 90° (curve conveyor) sebelum placer, sehingga transfer searah laju plate dan produk tetap memanjang.</span></div>
+      <div><i class="dot good"></i><span>Tidak ada seluncuran. Ujung nose berada ±3 mm di atas plate, jadi produk diletakkan, tidak dijatuhkan.</span></div>
+      <div><i class="dot good"></i><span>Kecepatan belt = kecepatan plate (servo + encoder plate). Gerak maju-mundur nose dikunci ke posisi plate, sehingga produk selalu di tengah plate.</span></div>
+      <div><i class="dot good"></i><span>Hanya tatakan yang disentuh, dari bawah. Tidak ada apa pun di atas adonan, dan robot tetap memakai gripper Cornetto.</span></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-fix">
+    <div class="hd"><h2 id="h-fix">Masalah cara lama dan perbaikannya</h2></div>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Masalah sebelumnya</th><th>Perbaikan di placer usulan</th></tr></thead>
+      <tbody>
+        <tr><td>Masuk tegak lurus terhadap laju plate</td><td>Alur dibelokkan 90° dengan curve conveyor sebelum placer. Saat berpindah, produk dan plate bergerak searah dengan kecepatan sama, jadi tidak ada gaya yang memelintir</td></tr>
+        <tr><td>Ujung conveyor terlalu tinggi dari plate</td><td>Rangka mengecil menjadi nose tajam (R3–5 mm). Ujung belt ±3 mm di atas plate, kerataan dijaga dengan rail penyetel</td></tr>
+        <tr><td>Seluncuran membuat produk berakselerasi dan berputar</td><td>Seluncuran dihilangkan. Produk tetap dibawa belt sampai menyentuh plate; turunan nose landai dan produk tidak meluncur</td></tr>
+        <tr><td>Kecepatan produk ≠ kecepatan plate</td><td>Belt servo mengikuti encoder di sprocket cooling conveyor, jadi kecepatan relatif ≈ 0 saat produk berpindah</td></tr>
+        <tr><td>Maju-mundur tidak tersinkron, posisi acak</td><td>Profil maju-mundur nose (cam elektronik) dikunci ke posisi plate. Belt phasing di hulu mengatur jarak antarproduk sesuai pitch plate</td></tr>
+        <tr><td>5 produk dikirim sekaligus, mendarat tidak teratur</td><td>Tiap produk punya lane sendiri dan diletakkan satu per satu di posisi lane yang tetap, tersinkron ke plate. 5 produk per plate tetap bisa dengan 5 lane</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-num">
+    <div class="hd"><h2 id="h-num">Angka kunci</h2><span class="sub">Asumsi pitch plate 300 mm, output 40 pcs/min. Konfirmasi dengan gambar plate</span></div>
+    <div class="kv">
+      <div><b>≤ 3 mm</b><span>Tinggi ujung nose di atas permukaan plate</span></div>
+      <div><b>± 0 m/min</b><span>Selisih kecepatan belt terhadap plate saat transfer</span></div>
+      <div><b>±10 mm</b><span>Target posisi produk terhadap tengah plate</span></div>
+      <div><b>N = 40 × 0,3 / v</b><span>Produk per plate (v dalam m/min) menentukan jumlah lane</span></div>
+    </div>
+  </section>
+
+  <p class="foot">Ilustrasi konsep, belum skala detail. Kecepatan plate, pitch, pola lubang dan pin pada carrier plate, serta ruang di hulu zona robot perlu dikonfirmasi sebelum desain detail. Pada tampilan 2 dan 4 lane, kecepatan plate lebih lambat sehingga beberapa produk menunggu di lane masing-masing sampai plate berikutnya tiba.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+const P = 300, L = 133, FL = 75, BW = 66;          // pitch plate, panjang & lebar produk (mm)
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let C = {};
+function readColors(){ ['fg','muted','line','accent','good','bad','plate','plate-edge','hole','belt','old','steel','tray','ice','choc','scene','surface'].forEach(k => C[k] = css('--'+k)); }
+readColors();
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors); } catch(e){}
+new MutationObserver(readColors).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme','class']});
+const mod = (a,n) => ((a%n)+n)%n;
+const ease = f => f<.5 ? 2*f*f : 1 - Math.pow(-2*f+2,2)/2;
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+
+// ---------- kanvas ----------
+function makeCanvas(id, x0, x1, y0, y1, minH){
+  const cv = document.getElementById(id), ctx = cv.getContext('2d');
+  const o = {cv, ctx, x0, x1, y0, y1, minH, s:1, W:0, H:0, ox:0, oy:0};
+  o.fit = () => { const W = cv.clientWidth || 600; const sx = W/(x1-x0); let H = Math.round((y1-y0)*sx); let s = sx;
+    if(H < minH){ H = minH; }
+    const dpr = Math.min(window.devicePixelRatio||1, 2); cv.width = W*dpr; cv.height = H*dpr; cv.style.height = H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0); o.W=W; o.H=H; o.s=s; o.ox = -x0*s; o.oy = (H + (y0)*s) - (H - (y1-y0)*s)/2; };
+  o.X = x => o.ox + x*o.s; o.Y = y => o.oy - y*o.s;
+  return o; }
+const oldSide = makeCanvas('oldSide', -1350, 900, -70, 215, 190);
+const newSide = makeCanvas('newSide', -260, 1700, -70, 210, 190);
+const oldTop  = makeCanvas('oldTop', -260, 1700, -470, 470, 220);
+const newTop  = makeCanvas('newTop', -260, 1700, -470, 470, 220);
+const all = [oldSide, newSide, oldTop, newTop];
+function fitAll(){ all.forEach(c => c.fit()); }
+new ResizeObserver(fitAll).observe(document.querySelector('.wrap')); fitAll();
+
+// ---------- helper gambar ----------
+function label(c, text, x, y, color, align, size){ const g=c.ctx; g.font = `${size||12}px ${css('--f-mono')||'monospace'}`; g.fillStyle = color||C.fg; g.textAlign = align||'left'; g.textBaseline='middle'; g.fillText(text, x, y); }
+function badge(c, text, color){ const g=c.ctx; g.font = `600 12px ${css('--f-ui')}`; const w = g.measureText(text).width + 16; const x = c.W - w - 10, y = 10;
+  g.fillStyle = color; roundRect(g, x, y, w, 22, 5); g.fill(); g.fillStyle = '#fff'; g.textAlign='left'; g.textBaseline='middle'; g.fillText(text, x+8, y+11); }
+function roundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+function dimV(c, x, ya, yb, text){ const g=c.ctx, X=c.X(x), A=c.Y(ya), B=c.Y(yb); g.strokeStyle=C.muted; g.lineWidth=1; g.beginPath(); g.moveTo(X,A); g.lineTo(X,B); g.stroke();
+  [[A,1],[B,-1]].forEach(([p,d]) => { g.beginPath(); g.moveTo(X-4,p+d*6); g.lineTo(X,p); g.lineTo(X+4,p+d*6); g.stroke(); }); label(c, text, X+8, (A+B)/2, C.muted); }
+function arrowH(c, xa, xb, y, text, color){ const g=c.ctx, A=c.X(xa), B=c.X(xb), Y=c.Y(y); g.strokeStyle=color||C.muted; g.lineWidth=1.2; g.beginPath(); g.moveTo(A,Y); g.lineTo(B,Y); g.stroke();
+  [[A,1],[B,-1]].forEach(([p,d]) => { g.beginPath(); g.moveTo(p+d*6,Y-4); g.lineTo(p,Y); g.lineTo(p+d*6,Y+4); g.stroke(); }); if(text) label(c, text, (A+B)/2, Y-10, color||C.muted, 'center'); }
+
+// ---------- tampak samping: plate & produk ----------
+function drawPlatesSide(c, off){ const g=c.ctx; g.fillStyle=C.steel; g.fillRect(c.X(-300), c.Y(-22), c.X(1800)-c.X(-300), 14*c.s+2);
+  for(let k=-2;k<9;k++){ const x = -300 + mod(off, P) + k*P - P; g.fillStyle=C.plate; g.fillRect(c.X(x+3), c.Y(0), (P-6)*c.s, 10*c.s);
+    g.strokeStyle=C['plate-edge']; g.lineWidth=1; g.strokeRect(c.X(x+3), c.Y(0), (P-6)*c.s, 10*c.s); } }
+function drawProdSide(c, x, yb, rot, cross){ const g=c.ctx, s=c.s; const hf = cross? 37.5:66.5, hb = cross? 32.5:61.5, hi = cross? 33:66.5;
+  g.save(); g.translate(c.X(x), c.Y(yb)); g.rotate(-rot);
+  g.fillStyle=C.tray; g.strokeStyle=C['plate-edge']; g.lineWidth=1;
+  g.fillRect(-hb*s, -3.5*s, 2*hb*s, 3.5*s); g.fillRect(-hf*s, -5*s, 2*hf*s, 1.6*s);
+  g.fillStyle=C.ice; g.fillRect(-hi*s, -47*s, 2*hi*s, 42*s); g.fillStyle=C.choc; g.fillRect(-(hi-2)*s, -48*s, 2*(hi-2)*s, 2.2*s);
+  g.strokeRect(-hi*s, -48*s, 2*hi*s, 48*s); g.restore(); }
+
+// ---------- CARA LAMA: potongan melintang plate (masuk tegak lurus) ----------
+const OS = {t:0, prods:[], spawn:0};
+const VP = 200, H_OLD = 115, CH_L = 230, CH_H = 18;      // vp 12 m/min
+function oldEnd(t){ return -200 + 220*Math.sin(2*Math.PI*t/3.1); }
+function stepOldSide(dt){ OS.t += dt; OS.spawn -= dt;
+  if(OS.spawn <= 0){ for(let i=0;i<5;i++) OS.prods.push({st:'belt', x:-1330 - i*85, y:H_OLD, rot:0, a:1}); OS.spawn = 7.5; }
+  const xe = oldEnd(OS.t), vsh = 220*2*Math.PI/3.1*Math.cos(2*Math.PI*OS.t/3.1); const th = Math.atan2(H_OLD-CH_H, CH_L);
+  for(const p of OS.prods){
+    if(p.st==='belt'){ p.x += 320*dt; p.y=H_OLD; p.rot=0; if(p.x > xe){ p.st='chute'; p.s=0; p.v=320; } }
+    else if(p.st==='chute'){ p.v += 9810*(Math.sin(th)-0.22*Math.cos(th))*dt; p.s += p.v*dt; const xe2 = oldEnd(OS.t);
+      p.x = xe2 + p.s*Math.cos(th); p.y = H_OLD - p.s*Math.sin(th); p.rot = -th;
+      if(p.s >= CH_L/Math.cos(th)){ p.st='fall'; p.vx = p.v*Math.cos(th) + vsh; p.vy = -p.v*Math.sin(th); p.w = (rnd()-.5)*9; } }
+    else if(p.st==='fall'){ p.vy -= 9810*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.rot += p.w*dt; if(p.y <= 0){ p.y=0; p.st='land'; p.tl=0; p.tr = rnd()<.3 ? (rnd()-.5)*0.5 : 0; } }
+    else if(p.st==='land'){ p.tl += dt; p.vx *= Math.exp(-5*dt); p.x += p.vx*dt; p.rot += (p.tr - p.rot)*Math.min(1, 8*dt); p.y = Math.abs(p.rot)*40;
+      if(p.tl > 2.2) p.a = Math.max(0, 1 - (p.tl-2.2)/0.6); }
+  }
+  OS.prods = OS.prods.filter(p => p.a > 0 && p.x < 900); }
+function drawOldSide(){ const c=oldSide, g=c.ctx; g.clearRect(0,0,c.W,c.H);
+  // potongan carrier plate (lebar 740), plate bergerak masuk bidang gambar
+  g.fillStyle=C.steel; g.fillRect(c.X(-405), c.Y(-8), 30*c.s, 40*c.s); g.fillRect(c.X(375), c.Y(-8), 30*c.s, 40*c.s);
+  g.fillStyle=C.plate; g.fillRect(c.X(-370), c.Y(0), 740*c.s, 10*c.s); g.strokeStyle=C['plate-edge']; g.lineWidth=1; g.strokeRect(c.X(-370), c.Y(0), 740*c.s, 10*c.s);
+  const xe = oldEnd(OS.t), th = Math.atan2(H_OLD-CH_H, CH_L);
+  g.fillStyle=C.old; g.fillRect(c.X(-1300), c.Y(H_OLD), c.X(xe)-c.X(-1300), 26*c.s); g.beginPath(); g.arc(c.X(xe), c.Y(H_OLD-13), 13*c.s, 0, 7); g.fill();
+  g.fillStyle=C.steel; g.fillRect(c.X(-1150), c.Y(H_OLD-26), 22*c.s, (H_OLD+40)*c.s); g.fillRect(c.X(-560), c.Y(H_OLD-26), 22*c.s, (H_OLD+40)*c.s);
+  g.strokeStyle=C.steel; g.lineWidth=Math.max(2, 5*c.s); g.beginPath(); g.moveTo(c.X(xe), c.Y(H_OLD)); g.lineTo(c.X(xe+CH_L), c.Y(CH_H)); g.stroke();
+  OS.prods.forEach(p => { g.save(); g.globalAlpha = p.a; drawProdSide(c, p.x, p.y, p.rot, true); g.restore(); });
+  dimV(c, 520, H_OLD, 0, 'beda tinggi besar');
+  arrowH(c, -420, 20, H_OLD+70, 'maju-mundur melintang plate', C.bad);
+  label(c, 'seluncuran', c.X(xe+CH_L*0.5)+6, c.Y(H_OLD*0.5)+14, C.muted, 'left');
+  label(c, 'Output 2 dari samping · 5 produk melintang per kiriman', c.X(-1300), c.Y(H_OLD+90), C.muted, 'left', 11);
+  const px = c.X(0), py = c.Y(-38); g.strokeStyle=C.fg; g.lineWidth=1.3; g.beginPath(); g.arc(px, py, 7, 0, 7); g.stroke();
+  g.beginPath(); g.moveTo(px-4,py-4); g.lineTo(px+4,py+4); g.moveTo(px+4,py-4); g.lineTo(px-4,py+4); g.stroke();
+  label(c, 'carrier plate, bergerak masuk bidang gambar', px+14, py, C.muted, 'left', 11);
+  badge(c, 'mendarat menyeberang plate', C.bad); }
+
+// ---------- CARA LAMA: atas ----------
+const OT = {prods:[], spawn:0, t:0, off:0};
+const OX = 330;                                       // posisi conveyor masuk di sepanjang plate
+function oldEndY(t){ return 120 + 200*Math.sin(2*Math.PI*t/3.1); }
+function stepOldTop(dt){ OT.t += dt; OT.off += VP*dt; OT.spawn -= dt;
+  if(OT.spawn <= 0){ for(let i=0;i<5;i++) OT.prods.push({st:'belt', x:OX, y:560 + i*85, yaw:0, a:1}); OT.spawn = 7.5; }
+  const ye = oldEndY(OT.t);
+  OT.prods.forEach(p => {
+    if(p.st==='belt'){ p.y -= 320*dt; if(p.y < ye - 120){ p.st='plate'; p.y = clamp(p.y - 40 - rnd()*150, -320, 320); p.x += (rnd()-.5)*80; p.yaw = (rnd()-.5)*0.9; } }
+    else { p.x += VP*dt; } });
+  OT.prods = OT.prods.filter(p => p.x < 1800); }
+function drawPlatesTop(c, off, vp){ const g=c.ctx;
+  g.fillStyle=C.steel; g.fillRect(c.X(-300), c.Y(395), c.X(1800)-c.X(-300), 12*c.s); g.fillRect(c.X(-300), c.Y(-383), c.X(1800)-c.X(-300), 12*c.s);
+  for(let k=-2;k<9;k++){ const x = -300 + mod(off, P) + k*P - P; g.fillStyle=C.plate; g.fillRect(c.X(x+3), c.Y(370), (P-6)*c.s, 740*c.s);
+    g.strokeStyle=C['plate-edge']; g.lineWidth=1; g.strokeRect(c.X(x+3), c.Y(370), (P-6)*c.s, 740*c.s);
+    g.fillStyle=C.hole; for(let i=0;i<3;i++) for(let j=0;j<8;j++){ const hx = x + 50 + i*100, hy = -315 + j*90 + (i%2?45:0); if(hy>330) continue; g.beginPath(); g.arc(c.X(hx), c.Y(hy), Math.max(1.2, 17*c.s), 0, 7); g.fill(); }
+    g.fillStyle=C['plate-edge']; [-355, 355].forEach(py => { g.fillRect(c.X(x+140), c.Y(py+6), 20*c.s, 12*c.s); }); } }
+function drawProdTop(c, x, y, yaw, alpha){ const g=c.ctx, s=c.s; g.save(); g.globalAlpha = alpha==null?1:alpha; g.translate(c.X(x), c.Y(y)); g.rotate(-yaw);
+  g.fillStyle=C.tray; g.strokeStyle=C['plate-edge']; g.lineWidth=1; g.fillRect(-66.5*s, -37.5*s, 133*s, 75*s); g.strokeRect(-66.5*s, -37.5*s, 133*s, 75*s);
+  g.fillStyle=C.ice; g.fillRect(-66.5*s, -33*s, 133*s, 66*s); g.strokeStyle=C.choc; g.lineWidth=Math.max(1, 2*s);
+  for(let i=-2;i<=2;i++){ g.beginPath(); g.moveTo((i*24-8)*s, -28*s); g.quadraticCurveTo((i*24+6)*s, 0, (i*24-8)*s, 28*s); g.stroke(); }
+  g.restore(); }
+function drawOldTop(){ const c=oldTop, g=c.ctx; g.clearRect(0,0,c.W,c.H); drawPlatesTop(c, OT.off);
+  const ye = oldEndY(OT.t);
+  g.fillStyle=C.old; g.fillRect(c.X(OX-85), c.Y(600), 170*c.s, (600-ye)*c.s);
+  g.fillStyle=C.steel; g.globalAlpha=.75; g.beginPath(); g.moveTo(c.X(OX-90), c.Y(ye)); g.lineTo(c.X(OX+90), c.Y(ye)); g.lineTo(c.X(OX+110), c.Y(ye-200)); g.lineTo(c.X(OX-110), c.Y(ye-200)); g.closePath(); g.fill(); g.globalAlpha=1;
+  OT.prods.forEach(p => { if(p.st==='belt' && p.y < ye-200) return; drawProdTop(c, p.x, p.y, p.yaw, p.a); });
+  label(c, 'Output 2 masuk tegak lurus ↓ · 5 produk sekali kirim', c.X(OX+100), c.Y(430), C.muted, 'left', 11);
+  label(c, 'arah plate → 12 m/min', c.X(1680), c.Y(-440), C.muted, 'right', 11);
+  badge(c, 'miring & posisi acak', C.bad); }
+
+// ---------- USULAN: samping ----------
+const NS = {off:0, prods:[], next:0};
+const XD = 760, WEDGE = 170, BELT_H = 46;
+function noseX(off){ const pc = -300 + mod(off, P) - P/2;          // pusat salah satu plate
+  const phi = mod(pc - XD, P); return phi < 60 ? XD + 70 - 130*(phi/60) : XD - 60 + 130*((phi-60)/(P-60)); }
+function beltTop(x, xn){ if(x > xn) return null; if(x < xn - WEDGE) return BELT_H; return 3 + (BELT_H-3)*(xn - x)/WEDGE; }
+function stepNewSide(dt){ NS.off += VP*dt;
+  // satu produk per plate; pusat target = pusat plate
+  const base = -300 + mod(NS.off, P) - P/2;
+  const centers = []; for(let k=-2;k<9;k++) centers.push(base + k*P);
+  NS.prods = centers.filter(cx => cx > -420 && cx < 1800).map(cx => { const id = Math.round((NS.off - cx)/P + 1e3*P)/1;
+    return {cx, e: ((Math.sin(id*12.9898)*43758.5453)%1)*70}; }); }
+function drawNewSide(c, zoom){ const g=c.ctx; drawPlatesSide(c, NS.off); const xn = noseX(NS.off);
+  // badan conveyor placer (baru)
+  g.fillStyle=C.belt; g.beginPath(); g.moveTo(c.X(-300), c.Y(BELT_H)); g.lineTo(c.X(xn-WEDGE), c.Y(BELT_H)); g.lineTo(c.X(xn), c.Y(3)); g.lineTo(c.X(xn), c.Y(0.8));
+  g.lineTo(c.X(xn-WEDGE), c.Y(18)); g.lineTo(c.X(-300), c.Y(18)); g.closePath(); g.fill();
+  g.fillStyle=C.fg; g.beginPath(); g.arc(c.X(xn-2), c.Y(1.9), Math.max(1.5, 2.2*c.s), 0, 7); g.fill();
+  if(!zoom){ g.fillStyle=C.steel; g.fillRect(c.X(-180), c.Y(18), 22*c.s, 70*c.s); g.fillRect(c.X(260), c.Y(18), 22*c.s, 8*c.s); }
+  NS.prods.forEach(p => { const k = clamp((420 - p.cx)/600, 0, 1); const x = p.cx + p.e*k;     // phasing: offset menghilang sebelum x=420
+    const rear = x - L/2, front = x + L/2; const yr = beltTop(rear, xn), yf = beltTop(front, xn);
+    let yb, rot; if(yr === null){ yb = 0; rot = 0; } else { const f = yf === null ? 0 : yf; yb = (yr + f)/2; rot = Math.atan2(f - yr, L); }
+    drawProdSide(c, x, yb, rot); }); return xn; }
+function drawNewSideMain(){ const c=newSide, g=c.ctx; g.clearRect(0,0,c.W,c.H); const xn = drawNewSide(c, false);
+  arrowH(c, -150, 380, BELT_H+75, 'belt phasing servo: jarak disamakan dengan pitch plate', C.accent);
+  arrowH(c, XD-60, XD+70, 120, 'nose maju-mundur tersinkron', C.good);
+  label(c, 'v belt = v plate', c.X(XD-WEDGE-10), c.Y(BELT_H+16), C.good, 'right');
+  label(c, 'produk duduk di tengah plate →', c.X(820), c.Y(-45), C.muted, 'left', 11);
+  // inset pembesaran ujung nose
+  const iw = Math.min(210, c.W*0.34), ih = Math.min(130, c.H*0.62), ix = c.W - iw - 12, iy = c.H - ih - 12;
+  g.save(); g.fillStyle=C.scene; g.strokeStyle=C.fg; g.lineWidth=1; g.fillRect(ix, iy, iw, ih); g.strokeRect(ix, iy, iw, ih); g.beginPath(); g.rect(ix, iy, iw, ih); g.clip();
+  const z = {ctx:g, s:c.s*7, W:c.W, H:c.H}; z.ox = ix + iw*0.55 - xn*z.s; z.oy = iy + ih*0.72; z.X = x => z.ox + x*z.s; z.Y = y => z.oy - y*z.s;
+  drawNewSide(z, true);
+  dimV(z, xn+5, 3, 0, '≤3 mm'); g.restore(); label(c, 'detail nose ×7', ix+6, iy+10, C.muted, 'left', 10);
+  badge(c, 'lurus & di tengah plate', C.good); }
+
+// ---------- USULAN: atas (1/2/4 lane) ----------
+const NT = {t:0, n:1};
+const LANES = {1:[0], 2:[-150,150], 4:[-225,-75,75,225], 5:[-280,-140,0,140,280]};
+const XN_TOP = 700, T_IN = 1.0, T_SH = 0.6;
+function vpN(){ return VP/NT.n; }
+const CR = 160, SEG1 = 600 - CR, ARC = Math.PI/2*CR, SEG3 = 190 - CR, CL = SEG1 + ARC + SEG3;
+function curvePos(f){ const d = f*CL;                       // Output 2 dari samping, dibelokkan 90° sebelum placer
+  if(d < SEG1) return {x:-190, y:600 - d, yaw:-Math.PI/2};
+  if(d < SEG1 + ARC){ const a = (d - SEG1)/CR; return {x:-190 + CR - CR*Math.cos(a), y:CR - CR*Math.sin(a), yaw:-Math.PI/2 + a}; }
+  return {x:-190 + CR + (d - SEG1 - ARC), y:0, yaw:0}; }
+function stepNewTop(dt){ NT.t += dt; }
+function drawNewTop(){ const c=newTop, g=c.ctx, n=NT.n, vp=vpN(), t=NT.t, lanes=LANES[n]; g.clearRect(0,0,c.W,c.H);
+  const t0 = 1.5*(n-1) + 3.0;                                        // waktu plate 0 tiba di garis nose
+  const off = vp*(t - t0) + XN_TOP - P/2 + 300;                      // supaya pusat plate k di XN_TOP saat Tk
+  drawPlatesTop(c, off);
+  // infeed + shuttle + lane belt
+  g.strokeStyle=C.belt; g.globalAlpha=.9; g.lineWidth=80*c.s; g.lineCap='butt'; g.beginPath(); g.moveTo(c.X(-190), c.Y(600)); g.lineTo(c.X(-190), c.Y(CR));
+  g.arc(c.X(-190+CR), c.Y(CR), CR*c.s, Math.PI, Math.PI/2, true); g.lineTo(c.X(0), c.Y(0)); g.stroke(); g.fillStyle=C.belt;
+  lanes.forEach(y => { g.fillRect(c.X(150), c.Y(y+30), (XN_TOP-150)*c.s, 60*c.s); });
+  // posisi shuttle
+  let ysh = 0; const iNow = Math.floor((t - T_IN)/1.5);
+  if(n>1 && iNow >= 0){ const ti = 1.5*iNow + T_IN; const j = iNow % n; const f = (t - ti); if(f < T_SH){ ysh = lanes[j]*ease(clamp(f/T_SH,0,1)); } else { ysh = lanes[j]*(1 - ease(clamp((f - T_SH)/0.8,0,1))); } }
+  if(n>1){ g.fillStyle=C.accent; g.fillRect(c.X(0), c.Y(ysh+40), 150*c.s, 80*c.s); }
+  else { g.fillRect(c.X(0), c.Y(40), 150*c.s, 80*c.s); }
+  g.globalAlpha=1;
+  g.strokeStyle=C.fg; g.setLineDash([5,4]); g.lineWidth=1.2; g.beginPath(); g.moveTo(c.X(XN_TOP), c.Y(370)); g.lineTo(c.X(XN_TOP), c.Y(-370)); g.stroke(); g.setLineDash([]);
+  // produk
+  const iMax = Math.floor(t/1.5);
+  for(let i = Math.max(0, iMax-40); i <= iMax; i++){ const ts = 1.5*i; const k = Math.floor(i/n), j = i%n; const Tk = 1.5*n*k + t0; const ly = lanes[j];
+    let x, y; const tt = t - ts;
+    let yaw = 0;
+    if(tt < T_IN){ const q = curvePos(tt/T_IN); x = q.x; y = q.y; yaw = q.yaw; }
+    else if(tt < T_IN + T_SH){ const f = (tt - T_IN)/T_SH; x = 0 + 150*f; y = n>1 ? ly*ease(f) : 0; }
+    else if(t < Tk){ const ta = ts + T_IN + T_SH; const f = clamp((t - ta)/(Tk - ta), 0, 1); x = 150 + (XN_TOP - 150)*ease(f); y = ly; }
+    else { x = XN_TOP + vp*(t - Tk); y = ly; }
+    if(x > 1800) continue; drawProdTop(c, x, y, yaw, 1); }
+  label(c, n>1 ? 'Output 2 dibelokkan 90°, shuttle membagi ke lane' : 'Output 2 dibelokkan 90° lalu searah plate', c.X(-250), c.Y(-440), C.accent, 'left', 11);
+  label(c, 'garis nose', c.X(XN_TOP)+6, c.Y(430), C.fg, 'left', 11);
+  label(c, `arah plate → ${(vp*60/1000).toFixed(1).replace('.0','').replace('.',',')} m/min · ${n} pcs/plate`, c.X(1680), c.Y(-440), C.muted, 'right', 11);
+  badge(c, n===1 ? '1 produk per plate' : `${n} produk per plate`, C.good); }
+
+// ---------- loop ----------
+const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+let playing = !reduce, slow = false;
+const playBtn = document.getElementById('play'), slowBtn = document.getElementById('slow');
+playBtn.textContent = playing ? 'Jeda animasi' : 'Putar animasi';
+playBtn.addEventListener('click', () => { playing = !playing; playBtn.textContent = playing ? 'Jeda animasi' : 'Putar animasi'; });
+slowBtn.addEventListener('click', () => { slow = !slow; slowBtn.setAttribute('aria-pressed', String(slow)); });
+document.querySelectorAll('.lanes button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.lanes button').forEach(x => x.setAttribute('aria-pressed', String(x===b))); NT.n = +b.dataset.n; NT.t = 8; }));
+function stepAll(dt){ stepOldSide(dt); stepOldTop(dt); stepNewSide(dt); stepNewTop(dt); }
+function drawAll(){ drawOldSide(); drawOldTop(); drawNewSideMain(); drawNewTop(); }
+for(let i=0;i<300;i++) stepAll(1/30);           // warm-up supaya frame pertama sudah terisi
+NT.t = 8;
+let last = performance.now();
+function frame(now){ const dt = Math.min(0.05, (now-last)/1000); last = now;
+  if(playing){ let r = dt*(slow?0.4:1); while(r>0){ const h=Math.min(r,1/60); stepAll(h); r-=h; } }
+  drawAll(); requestAnimationFrame(frame); }
+drawAll(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
